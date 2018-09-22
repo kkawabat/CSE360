@@ -138,7 +138,8 @@ public class GUI {
 		
 		JButton btnProcess = new JButton("Process");
 		btnProcess.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
+			public void actionPerformed(ActionEvent e) {
+				processNetwork();
 			}
 		});
 		btnProcess.setBounds(150, 130, 130, 30);
@@ -173,21 +174,73 @@ public class GUI {
 		 
 		 //check if duration is valid
 		 try{duration = Integer.parseInt(strDuration);}
-	     catch (NumberFormatException ex){JOptionPane.showMessageDialog(null, ex.toString(), "Error", JOptionPane.ERROR_MESSAGE);return;}
+	     catch (NumberFormatException ex){JOptionPane.showMessageDialog(null, "Duration is not an integer", "Activity Not Generated", JOptionPane.ERROR_MESSAGE);return;}
 		 //check if name is valid
-		 if(strActivityName.equals("")) {JOptionPane.showMessageDialog(null, "Node must have a name", "Error", JOptionPane.ERROR_MESSAGE);return;}
+		 if(strActivityName.equals("")) {JOptionPane.showMessageDialog(null, "Node must have a name", "Activity Not Generated", JOptionPane.ERROR_MESSAGE);return;}
 		 
-		 ArrayList<String> predecessorList = new ArrayList<String>(); 
-		 
-		 ActivityNode node = new ActivityNode(strActivityName, duration, strPredecessor);
+		 //create activity node..
+		 ActivityNode node = new ActivityNode(strActivityName, duration);
+		 //..if no startNode initialized set node as startNode
 		 if(startNode == null) {
+			 //check that startNode has no predecessors
+			 if(strPredecessor.equals("")) {JOptionPane.showMessageDialog(null, "Start node must not have predecessor", "Activity Not Generated", JOptionPane.ERROR_MESSAGE);return;}
 			 startNode = node;
 		 }else {
-		     for (String predecessor : predecessorList) { 		      
-		           System.out.println(predecessor); 		
-		      } 
+			 //parse user input of predecessors and set predecessors and successors for the activity nodes involved
+			 String[] predecessorNameList = parsePredecessorFromString(strPredecessor);
+			 for(String name: predecessorNameList) {
+				 ActivityNode tmpPredecessor = getNodeByName(name, startNode); 
+				 tmpPredecessor.addSuccessor(node);
+				 node.addPredecessor(tmpPredecessor);
+			 }
 		 }
 		 return;
 		
+	}
+	
+	String[] parsePredecessorFromString(String strPredecessor){
+		String[] predecessorList = strPredecessor.split(",", -1); 
+		return predecessorList;
+	}
+	
+	ActivityNode getNodeByName(String name, ActivityNode curNode) {
+		if(curNode.name.equals(name)) {
+			return curNode;
+		}
+		
+		ActivityNode tmpNode;
+		for(ActivityNode node: curNode.getSucessors()) {
+			tmpNode = getNodeByName(name, node);
+			if(tmpNode != null) {
+				return tmpNode;
+			}
+		}
+		return null;
+	}
+	
+	ArrayList<pathAndtotalDuration> getPathLists(ActivityNode node){
+		ArrayList<pathAndtotalDuration> curPathAndDuration = new ArrayList<pathAndtotalDuration>();
+		ArrayList<ActivityNode> sucessors = node.getSucessors();
+		if(node.getSucessors() == null) {
+			curPathAndDuration.add(new pathAndtotalDuration(node.name, node.duration));
+		}else {
+			for(ActivityNode tmpNode: sucessors) {
+				curPathAndDuration.addAll(getPathLists(tmpNode));
+			}
+			for(pathAndtotalDuration tmpPathAndDuration: curPathAndDuration ) {
+				tmpPathAndDuration.path = node.name + "->" + tmpPathAndDuration.path; 
+				tmpPathAndDuration.duration += node.duration;
+			}
+		}
+		return curPathAndDuration;
+	}
+	
+	void processNetwork() {
+		ArrayList<pathAndtotalDuration> pathAndDurationList = getPathLists(startNode);
+		Collections.sort(pathAndDurationList);
+		for(pathAndtotalDuration tmpPath: pathAndDurationList) {
+			System.out.println(tmpPath.toString());
+		}
+		return;
 	}
 }

@@ -1,15 +1,34 @@
+import java.util.*;
 
 public class ActivityNode {
 
     // Instance Variables 
     String name; 
     int duration; 
-    String predecessors;
+    ArrayList<ActivityNode> predecessors;
+    ArrayList<ActivityNode> successors;
 	
-	public ActivityNode(String name, int duration, String predecessors) {
+	public ActivityNode(String name, int duration, ArrayList<ActivityNode> predecessors) {
 		this.name = name;
 		this.duration = duration;
 		this.predecessors = predecessors;
 	}
-
+	
+	public ActivityNode(String name, int duration) {
+		this.name = name;
+		this.duration = duration;
+	}
+	
+	public void addSuccessor(ActivityNode successor) {
+		this.successors.add(successor);
+	}
+	
+	public ArrayList<ActivityNode> getSucessors(){
+		return this.successors;
+	}
+	
+	public void addPredecessor(ActivityNode predecessor) {
+		this.predecessors.add(predecessor);
+	}
+	
 }

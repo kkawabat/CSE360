@@ -11,13 +11,14 @@ import java.awt.event.ActionEvent;
 import javax.swing.JFileChooser;
 
 import java.io.File;
-import java.io.IOException;
 import javax.swing.JTextField;
 import javax.swing.JLabel;
 import javax.swing.JButton;
-import javax.swing.JTextPane;
+import javax.swing.DefaultListModel;
 
 import javax.swing.JOptionPane;
+import javax.swing.JList;
+import javax.swing.JScrollPane;
 
 public class GUI {
 
@@ -26,8 +27,11 @@ public class GUI {
 	private JTextField textFieldActivityName;
 	private JTextField textFieldDuration;
 	private JTextField textFieldPredecessor;
-	private ActivityNode startNode;
+	private ActivityNode startNode = null;
 
+	private DefaultListModel<String> listModel = new DefaultListModel<String>();
+    private JList<String> list = new JList<String>(listModel);
+	
 	/**
 	 * Launch the application.
 	 */
@@ -131,11 +135,6 @@ public class GUI {
 		btnAddActivity.setBounds(10, 130, 130, 30);
 		frame.getContentPane().add(btnAddActivity);
 		
-		JTextPane textPaneOutput = new JTextPane();
-		textPaneOutput.setEditable(false);
-		textPaneOutput.setBounds(10, 190, 406, 170);
-		frame.getContentPane().add(textPaneOutput);
-		
 		JButton btnProcess = new JButton("Process");
 		btnProcess.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -150,6 +149,12 @@ public class GUI {
 		frame.getContentPane().add(lblOutput);
 		
 		JButton btnRestart = new JButton("Restart");
+		btnRestart.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				startNode = null;
+				listModel.removeAllElements();
+			}
+		});
 		btnRestart.setBounds(290, 130, 130, 30);
 		frame.getContentPane().add(btnRestart);
 		
@@ -164,6 +169,11 @@ public class GUI {
 		JLabel lblNewLabel_2 = new JLabel("Predecessor");
 		lblNewLabel_2.setBounds(10, 100, 80, 15);
 		frame.getContentPane().add(lblNewLabel_2);
+		
+		JScrollPane scrollPane = new JScrollPane();
+		scrollPane.setBounds(10, 185, 410, 180);
+		scrollPane.add(list);
+		frame.getContentPane().add(scrollPane);
 	}
 	
 	void addActivity() {
@@ -181,15 +191,15 @@ public class GUI {
 		 //create activity node..
 		 ActivityNode node = new ActivityNode(strActivityName, duration);
 		 //..if no startNode initialized set node as startNode
-		 if(startNode == null) {
+		 if(this.startNode == null) {
 			 //check that startNode has no predecessors
 			 if(strPredecessor.equals("")) {JOptionPane.showMessageDialog(null, "Start node must not have predecessor", "Activity Not Generated", JOptionPane.ERROR_MESSAGE);return;}
-			 startNode = node;
+			 this.startNode = node;
 		 }else {
 			 //parse user input of predecessors and set predecessors and successors for the activity nodes involved
 			 String[] predecessorNameList = parsePredecessorFromString(strPredecessor);
 			 for(String name: predecessorNameList) {
-				 ActivityNode tmpPredecessor = getNodeByName(name, startNode); 
+				 ActivityNode tmpPredecessor = getNodeByName(name, this.startNode); 
 				 tmpPredecessor.addSuccessor(node);
 				 node.addPredecessor(tmpPredecessor);
 			 }
@@ -239,6 +249,7 @@ public class GUI {
 		ArrayList<pathAndtotalDuration> pathAndDurationList = getPathLists(startNode);
 		Collections.sort(pathAndDurationList);
 		for(pathAndtotalDuration tmpPath: pathAndDurationList) {
+			listModel.addElement(tmpPath.toString());
 			System.out.println(tmpPath.toString());
 		}
 		return;

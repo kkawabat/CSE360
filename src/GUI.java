@@ -1,6 +1,7 @@
 import java.util.*;
 
 import java.awt.EventQueue;
+import java.awt.ScrollPane;
 
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
@@ -32,6 +33,8 @@ public class GUI {
 	private DefaultListModel<String> listModel = new DefaultListModel<String>();
     private JList<String> list = new JList<String>(listModel);
 	
+    private JScrollPane scrollPaneOutput;
+    
 	/**
 	 * Launch the application.
 	 */
@@ -170,30 +173,36 @@ public class GUI {
 		lblNewLabel_2.setBounds(10, 100, 80, 15);
 		frame.getContentPane().add(lblNewLabel_2);
 		
-		JScrollPane scrollPane = new JScrollPane();
-		scrollPane.setBounds(10, 185, 410, 180);
-		scrollPane.add(list);
-		frame.getContentPane().add(scrollPane);
+		scrollPaneOutput = new JScrollPane();
+		scrollPaneOutput.setBounds(10, 185, 410, 180);
+		scrollPaneOutput.setViewportView(list);
+		frame.getContentPane().add(scrollPaneOutput);
 	}
 	
 	void addActivity() {
 		 String strActivityName = textFieldActivityName.getText();
 		 String strDuration = textFieldDuration.getText();
 		 String strPredecessor = textFieldPredecessor.getText();
-		 int duration;
 		 
+		 textFieldActivityName.setText("");
+		 textFieldDuration.setText("");
+		 textFieldPredecessor.setText("");
+		 
+		//check if name is valid
+		 if(strActivityName.equals("")) {JOptionPane.showMessageDialog(null, "Node must have a name", "Activity Not Generated", JOptionPane.ERROR_MESSAGE);return;}
+		 //check if node with same name exists
+		 if(getNodeByName(strActivityName, this.startNode) != null) {JOptionPane.showMessageDialog(null, "Node with same name already exists in network", "Activity Not Generated", JOptionPane.ERROR_MESSAGE);return;}
+		 int duration;
 		 //check if duration is valid
 		 try{duration = Integer.parseInt(strDuration);}
 	     catch (NumberFormatException ex){JOptionPane.showMessageDialog(null, "Duration is not an integer", "Activity Not Generated", JOptionPane.ERROR_MESSAGE);return;}
-		 //check if name is valid
-		 if(strActivityName.equals("")) {JOptionPane.showMessageDialog(null, "Node must have a name", "Activity Not Generated", JOptionPane.ERROR_MESSAGE);return;}
 		 
 		 //create activity node..
 		 ActivityNode node = new ActivityNode(strActivityName, duration);
 		 //..if no startNode initialized set node as startNode
 		 if(this.startNode == null) {
 			 //check that startNode has no predecessors
-			 if(strPredecessor.equals("")) {JOptionPane.showMessageDialog(null, "Start node must not have predecessor", "Activity Not Generated", JOptionPane.ERROR_MESSAGE);return;}
+			 if(!strPredecessor.equals("")) {JOptionPane.showMessageDialog(null, "Start node must not have predecessor", "Activity Not Generated", JOptionPane.ERROR_MESSAGE);return;}
 			 this.startNode = node;
 		 }else {
 			 //parse user input of predecessors and set predecessors and successors for the activity nodes involved
@@ -214,6 +223,10 @@ public class GUI {
 	}
 	
 	ActivityNode getNodeByName(String name, ActivityNode curNode) {
+		if(curNode == null) {
+			return null;
+		} 
+		
 		if(curNode.name.equals(name)) {
 			return curNode;
 		}
@@ -231,7 +244,7 @@ public class GUI {
 	ArrayList<pathAndtotalDuration> getPathLists(ActivityNode node){
 		ArrayList<pathAndtotalDuration> curPathAndDuration = new ArrayList<pathAndtotalDuration>();
 		ArrayList<ActivityNode> sucessors = node.getSucessors();
-		if(node.getSucessors() == null) {
+		if(sucessors == null || sucessors.isEmpty()) {
 			curPathAndDuration.add(new pathAndtotalDuration(node.name, node.duration));
 		}else {
 			for(ActivityNode tmpNode: sucessors) {
@@ -246,10 +259,17 @@ public class GUI {
 	}
 	
 	void processNetwork() {
-		ArrayList<pathAndtotalDuration> pathAndDurationList = getPathLists(startNode);
+		if(this.startNode == null) {
+			{JOptionPane.showMessageDialog(null, "No Activity Node detected", "Could Not Process Network", JOptionPane.ERROR_MESSAGE);return;}
+		}
+		ArrayList<pathAndtotalDuration> pathAndDurationList = getPathLists(this.startNode);
+		listModel.removeAllElements();
 		Collections.sort(pathAndDurationList);
 		for(pathAndtotalDuration tmpPath: pathAndDurationList) {
 			listModel.addElement(tmpPath.toString());
+			list.setModel(listModel);
+			scrollPaneOutput.revalidate();
+			scrollPaneOutput.repaint();
 			System.out.println(tmpPath.toString());
 		}
 		return;

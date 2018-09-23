@@ -5,8 +5,8 @@ public class ActivityNode {
     // Instance Variables 
     String name; 
     int duration; 
-    ArrayList<ActivityNode> predecessors;
-    ArrayList<ActivityNode> successors;
+    ArrayList<ActivityNode> predecessors = new ArrayList<ActivityNode>();
+    ArrayList<ActivityNode> successors = new ArrayList<ActivityNode>();
 	
 	public ActivityNode(String name, int duration, ArrayList<ActivityNode> predecessors) {
 		this.name = name;

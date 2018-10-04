@@ -190,7 +190,18 @@ public class GUI {
       }
     }
     return false;
-}
+	}
+
+	public static int indexOfName(ArrayList<ActivityNode> list, String name) {
+		int i = 0;
+    for(ActivityNode object : list) {
+      if (object.name == name) {
+        return i;
+      }
+			i++;
+    }
+    return -1;
+	}
 
 	void queActivity() {
 		String strActivityName = textFieldActivityName.getText();
@@ -222,11 +233,25 @@ public class GUI {
 
 	ArrayList<ActivityNode> breadthSort(ArrayList<ActivityNode> nodeList, ArrayList<ActivityNode> rootNodes) {
   	boolean visited[] = new boolean[allNodes.size()];
+		boolean allParentsPresent = false;
     ArrayList<ActivityNode> queue = new ArrayList<ActivityNode>();
 		ArrayList<ActivityNode> sortedList = new ArrayList<ActivityNode>();
     visited[allNodes.indexOf(nodeList.get(0))] = true;
     queue.add(nodeList.get(0));
-    while (queue.size() != 0) {
+		while (queue.size() != 0) {
+			if(!Arrays.asList(queue.get(0).dependencies).contains("")) {
+				do {
+					allParentsPresent = false;
+					for(String predName: queue.get(0).dependencies) {
+						if(visited[indexOfName(allNodes, predName)] == false) {
+							queue.add(queue.get(0));
+							queue.remove(0);
+							allParentsPresent = true;
+							break;
+						}
+					}
+				} while(!allParentsPresent);
+			}
       ActivityNode tmpNode = queue.get(0);
 			queue.remove(0);
       sortedList.add(tmpNode);
@@ -235,7 +260,7 @@ public class GUI {
       while (i.hasNext()) {
         ActivityNode n = i.next();
 				System.out.println("iteration: " + n.name);
-        if (!visited[allNodes.indexOf(n)]) { //if dependencies havent been visted send to back of bus
+        if (!visited[allNodes.indexOf(n)]) {
 					System.out.println("and it hasn't been visited");
           visited[allNodes.indexOf(n)] = true;
           queue.add(n);

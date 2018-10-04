@@ -7,11 +7,12 @@ public class ActivityNode {
     int duration;
     ArrayList<ActivityNode> predecessors = new ArrayList<ActivityNode>();
     ArrayList<ActivityNode> successors = new ArrayList<ActivityNode>();
+    String[] dependencies;
 
-	public ActivityNode(String name, int duration, ArrayList<ActivityNode> predecessors) {
+	public ActivityNode(String name, int duration, String[] dependencies) {
 		this.name = name;
 		this.duration = duration;
-		this.predecessors = predecessors;
+		this.dependencies = dependencies;
 	}
 
 	public ActivityNode(String name, int duration) {
@@ -22,7 +23,7 @@ public class ActivityNode {
 	public void addSuccessor(ActivityNode successor) {
 		this.successors.add(successor);
 	}
-	
+
 	public ArrayList<ActivityNode> getSuccessors(){
 		return this.successors;
 	}

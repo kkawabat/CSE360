@@ -29,6 +29,8 @@ public class GUI {
 	private JTextField textFieldDuration;
 	private JTextField textFieldPredecessor;
 	private ArrayList<ActivityNode> startNodes = new ArrayList<ActivityNode>();
+	private ArrayList<ActivityNode> allNodes = new ArrayList<ActivityNode>();
+	private ArrayList<ActivityNode> activityQue = new ArrayList<ActivityNode>();
 
 	private DefaultListModel<String> listModel = new DefaultListModel<String>();
     private JList<String> list = new JList<String>(listModel);
@@ -132,7 +134,7 @@ public class GUI {
 		JButton btnAddActivity = new JButton("Add Activity");
 		btnAddActivity.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				addActivity();
+				queActivity();
 			}
 		});
 		btnAddActivity.setBounds(10, 130, 130, 30);
@@ -156,6 +158,7 @@ public class GUI {
 			public void actionPerformed(ActionEvent e) {
 				startNodes.clear();
 				listModel.removeAllElements();
+				allNodes.clear();
 			}
 		});
 		btnRestart.setBounds(290, 130, 130, 30);
@@ -179,33 +182,83 @@ public class GUI {
 		frame.getContentPane().add(scrollPaneOutput);
 	}
 
-	void addActivity() {
-		 String strActivityName = textFieldActivityName.getText();
-		 String strDuration = textFieldDuration.getText();
-		 String strPredecessor = textFieldPredecessor.getText();
+	public static boolean containsName(ArrayList<ActivityNode> list, String name) {
+    for(ActivityNode object : list) {
+      if (object.name == name) {
+        return true;
+      }
+    }
+    return false;
+}
 
-		 textFieldActivityName.setText("");
-		 textFieldDuration.setText("");
-		 textFieldPredecessor.setText("");
+	void queActivity() {
+		String strActivityName = textFieldActivityName.getText();
+		String strDuration = textFieldDuration.getText();
+		String strPredecessor = textFieldPredecessor.getText();
 
-		//check if name is valid
-		 if(strActivityName.equals("")) {JOptionPane.showMessageDialog(null, "Node must have a name", "Activity Not Generated", JOptionPane.ERROR_MESSAGE);return;}
-		 //check if node with same name exists
-		 if(getNodeByName(strActivityName, this.startNodes) != null) {JOptionPane.showMessageDialog(null, "Node with same name already exists in network", "Activity Not Generated", JOptionPane.ERROR_MESSAGE);return;}
-		 int duration;
-		 //check if duration is valid
-		 try{duration = Integer.parseInt(strDuration);}
-	     catch (NumberFormatException ex){JOptionPane.showMessageDialog(null, "Duration is not an integer", "Activity Not Generated", JOptionPane.ERROR_MESSAGE);return;}
+		textFieldActivityName.setText("");
+		textFieldDuration.setText("");
+		textFieldPredecessor.setText("");
 
-		 //create activity node..
-		 ActivityNode node = new ActivityNode(strActivityName, duration);
-		 //..if no predecessors add node to startNodes
-		 if(strPredecessor.equals("")) {
+	 //check if name is valid
+		if(strActivityName.equals("")) {JOptionPane.showMessageDialog(null, "Node must have a name", "Activity Not Generated", JOptionPane.ERROR_MESSAGE);return;}
+		//check if node with same name exists
+		if(containsName(allNodes, strActivityName)) {JOptionPane.showMessageDialog(null, "Node with same name already exists in network", "Activity Not Generated", JOptionPane.ERROR_MESSAGE);return;}
+		int duration;
+		//check if duration is valid
+		try{duration = Integer.parseInt(strDuration);}
+			catch (NumberFormatException ex){JOptionPane.showMessageDialog(null, "Duration is not an integer", "Activity Not Generated", JOptionPane.ERROR_MESSAGE);return;}
+
+		String[] predecessorNameList = parsePredecessorFromString(strPredecessor);
+		ActivityNode node = new ActivityNode(strActivityName, duration, predecessorNameList);
+		allNodes.add(node);
+		if(strPredecessor.equals("")) {
+			activityQue.add(0, node);
+		}
+		else
+			activityQue.add(node);
+	}
+
+	void breadthSort(ArrayList<ActivityNode> nodes, ArrayList<ActivityNode> rootNodes) {
+  	boolean visited[] = new boolean[allNodes.size()];
+    ArrayList<ActivityNode> queue = new ArrayList<ActivityNode>();
+		ArrayList<ActivityNode> sortedList = new ArrayList<ActivityNode>();
+    visited[allNodes.indexOf(nodes.get(0))] = true;
+    queue.add(nodes.get(0));
+    while (queue.size() != 0) {
+      ActivityNode tmpNode = queue.get(0);
+			queue.remove(0);
+      sortedList.add(tmpNode);
+      Iterator<ActivityNode> i = findAdjacentNodes(tmpNode, rootNodes).listIterator();
+      while (i.hasNext()) {
+        ActivityNode n = i.next();
+        if (!visited[allNodes.indexOf(tmpNode)]) {
+          visited[allNodes.indexOf(tmpNode)] = true;
+          queue.add(n);
+        }
+      }
+    }
+	}
+
+	ArrayList<ActivityNode> findAdjacentNodes(ActivityNode node, ArrayList<ActivityNode> rootNodes) {
+		for(ActivityNode curr: allNodes) {
+			if(Arrays.asList(curr.dependencies).contains(node.name))
+				node.addSuccessor(curr);
+		}
+		return node.getSuccessors();
+	}
+
+	void addActivities() {
+		for(ActivityNode node: activityQue)
+			addActivity(node);
+		activityQue.clear();
+	}
+
+	void addActivity(ActivityNode node) {
+		 if(Arrays.asList(node.dependencies).contains("")) {
 			 this.startNodes.add(node);
 		 } else {
-			 //parse user input of predecessors and set predecessors and successors for the activity nodes involved
-			 String[] predecessorNameList = parsePredecessorFromString(strPredecessor);
-			 for(String name: predecessorNameList) {
+			 for(String name: node.dependencies) {
 				 ActivityNode tmpPredecessor = getNodeByName(name, this.startNodes);
 				 tmpPredecessor.addSuccessor(node);
 				 node.addPredecessor(tmpPredecessor);
@@ -277,6 +330,8 @@ public class GUI {
 	}
 
 	void processNetwork() {
+		breadthSort(activityQue, this.startNodes);
+		addActivities();
 		if(startNodes.isEmpty()) {
 			{JOptionPane.showMessageDialog(null, "No Activity Nodes detected", "Could Not Process Network", JOptionPane.ERROR_MESSAGE);return;}
 		}

@@ -159,6 +159,7 @@ public class GUI {
 				startNodes.clear();
 				listModel.removeAllElements();
 				allNodes.clear();
+				activityQue.clear();
 			}
 		});
 		btnRestart.setBounds(290, 130, 130, 30);
@@ -219,33 +220,40 @@ public class GUI {
 			activityQue.add(node);
 	}
 
-	void breadthSort(ArrayList<ActivityNode> nodes, ArrayList<ActivityNode> rootNodes) {
+	ArrayList<ActivityNode> breadthSort(ArrayList<ActivityNode> nodeList, ArrayList<ActivityNode> rootNodes) {
   	boolean visited[] = new boolean[allNodes.size()];
     ArrayList<ActivityNode> queue = new ArrayList<ActivityNode>();
 		ArrayList<ActivityNode> sortedList = new ArrayList<ActivityNode>();
-    visited[allNodes.indexOf(nodes.get(0))] = true;
-    queue.add(nodes.get(0));
+    visited[allNodes.indexOf(nodeList.get(0))] = true;
+    queue.add(nodeList.get(0));
     while (queue.size() != 0) {
       ActivityNode tmpNode = queue.get(0);
 			queue.remove(0);
       sortedList.add(tmpNode);
+			System.out.println("next in line: " + tmpNode.name);
       Iterator<ActivityNode> i = findAdjacentNodes(tmpNode, rootNodes).listIterator();
       while (i.hasNext()) {
         ActivityNode n = i.next();
-        if (!visited[allNodes.indexOf(tmpNode)]) {
-          visited[allNodes.indexOf(tmpNode)] = true;
+				System.out.println("iteration: " + n.name);
+        if (!visited[allNodes.indexOf(n)]) { //if dependencies havent been visted send to back of bus
+					System.out.println("and it hasn't been visited");
+          visited[allNodes.indexOf(n)] = true;
           queue.add(n);
         }
       }
     }
+		return sortedList;
 	}
 
 	ArrayList<ActivityNode> findAdjacentNodes(ActivityNode node, ArrayList<ActivityNode> rootNodes) {
+		ArrayList<ActivityNode> adjancentNodes = new ArrayList<ActivityNode>();
 		for(ActivityNode curr: allNodes) {
-			if(Arrays.asList(curr.dependencies).contains(node.name))
-				node.addSuccessor(curr);
+			if(Arrays.asList(curr.dependencies).contains(node.name)) {
+				adjancentNodes.add(curr);
+				System.out.println("found successor of " + node.name + ": " + curr.name);
+			}
 		}
-		return node.getSuccessors();
+		return adjancentNodes;
 	}
 
 	void addActivities() {
@@ -255,6 +263,7 @@ public class GUI {
 	}
 
 	void addActivity(ActivityNode node) {
+		System.out.println("adding " + node.name);
 		 if(Arrays.asList(node.dependencies).contains("")) {
 			 this.startNodes.add(node);
 		 } else {
@@ -317,7 +326,7 @@ public class GUI {
 		ArrayList<ActivityNode> successors = node.getSuccessors();
 		if(successors == null || successors.isEmpty()) {
 			curPathAndDuration.add(new pathAndtotalDuration(node.name, node.duration));
-		}else {
+		} else {
 			for(ActivityNode tmpNode: successors) {
 				curPathAndDuration.addAll(getPartPath(tmpNode));
 			}
@@ -330,7 +339,7 @@ public class GUI {
 	}
 
 	void processNetwork() {
-		breadthSort(activityQue, this.startNodes);
+		activityQue = breadthSort(activityQue, this.startNodes);
 		addActivities();
 		if(startNodes.isEmpty()) {
 			{JOptionPane.showMessageDialog(null, "No Activity Nodes detected", "Could Not Process Network", JOptionPane.ERROR_MESSAGE);return;}

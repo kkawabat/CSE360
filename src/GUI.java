@@ -30,7 +30,7 @@ public class GUI {
 	private JTextField textFieldPredecessor;
 	private ArrayList<ActivityNode> startNodes = new ArrayList<ActivityNode>();
 	private ArrayList<ActivityNode> allNodes = new ArrayList<ActivityNode>();
-	private ArrayList<ActivityNode> activityQue = new ArrayList<ActivityNode>();
+	private ArrayList<ActivityNode> activityQueue = new ArrayList<ActivityNode>();
 
 	private DefaultListModel<String> listModel = new DefaultListModel<String>();
     private JList<String> list = new JList<String>(listModel);
@@ -78,14 +78,14 @@ public class GUI {
 		mntmOpenInputFile.setEnabled(false);
 		mntmOpenInputFile.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-			    int returnVal = fc.showOpenDialog(null);
+			  int returnVal = fc.showOpenDialog(null);
 
-		        if (returnVal == JFileChooser.APPROVE_OPTION) {
-		            File file = fc.getSelectedFile();
-		        } else {
-		        	System.out.print("Open command cancelled by user.\n");
-		        }
-		   }
+		    if (returnVal == JFileChooser.APPROVE_OPTION) {
+		    	File file = fc.getSelectedFile();
+		    } else {
+		      System.out.print("Open command cancelled by user.\n");
+		    }
+		  }
 		});
 
 		JMenuItem mntmSaveActivityList = new JMenuItem("Save Activity List");
@@ -159,7 +159,7 @@ public class GUI {
 				startNodes.clear();
 				listModel.removeAllElements();
 				allNodes.clear();
-				activityQue.clear();
+				activityQueue.clear();
 			}
 		});
 		btnRestart.setBounds(290, 130, 130, 30);
@@ -185,9 +185,8 @@ public class GUI {
 
 	public static boolean containsName(ArrayList<ActivityNode> list, String name) {
     for(ActivityNode object : list) {
-      if (object.name == name) {
+      if (object.name.equals(name))
         return true;
-      }
     }
     return false;
 	}
@@ -195,9 +194,8 @@ public class GUI {
 	public static int indexOfName(ArrayList<ActivityNode> list, String name) {
 		int i = 0;
     for(ActivityNode object : list) {
-      if (object.name == name) {
+      if (object.name.equals(name))
         return i;
-      }
 			i++;
     }
     return -1;
@@ -225,66 +223,53 @@ public class GUI {
 		ActivityNode node = new ActivityNode(strActivityName, duration, predecessorNameList);
 		allNodes.add(node);
 		if(strPredecessor.equals("")) {
-			activityQue.add(0, node);
+			activityQueue.add(0, node);
 		}
 		else
-			activityQue.add(node);
+			activityQueue.add(node);
 	}
 
-	ArrayList<ActivityNode> breadthSort(ArrayList<ActivityNode> nodeList, ArrayList<ActivityNode> rootNodes) {
-  	boolean visited[] = new boolean[allNodes.size()];
-		boolean allParentsPresent = false;
-    ArrayList<ActivityNode> queue = new ArrayList<ActivityNode>();
-		ArrayList<ActivityNode> sortedList = new ArrayList<ActivityNode>();
-    visited[allNodes.indexOf(nodeList.get(0))] = true;
-    queue.add(nodeList.get(0));
-		while (queue.size() != 0) {
-			if(!Arrays.asList(queue.get(0).dependencies).contains("")) {
-				do {
-					allParentsPresent = false;
-					for(String predName: queue.get(0).dependencies) {
-						if(visited[indexOfName(allNodes, predName)] == false) {
-							queue.add(queue.get(0));
-							queue.remove(0);
-							allParentsPresent = true;
-							break;
-						}
-					}
-				} while(!allParentsPresent);
-			}
-      ActivityNode tmpNode = queue.get(0);
-			queue.remove(0);
-      sortedList.add(tmpNode);
-			System.out.println("next in line: " + tmpNode.name);
-      Iterator<ActivityNode> i = findAdjacentNodes(tmpNode, rootNodes).listIterator();
-      while (i.hasNext()) {
-        ActivityNode n = i.next();
-				System.out.println("iteration: " + n.name);
-        if (!visited[allNodes.indexOf(n)]) {
-					System.out.println("and it hasn't been visited");
-          visited[allNodes.indexOf(n)] = true;
-          queue.add(n);
-        }
-      }
+  void topologicalSortUtil(ActivityNode node, boolean visited[], ArrayList<ActivityNode> stack) {
+    visited[indexOfName(activityQueue, node.name)] = true;
+    ActivityNode n;
+    Iterator<ActivityNode> i = findAdjacentNodes(node).iterator();
+    while (i.hasNext()) {
+      n = i.next();
+      if (!visited[activityQueue.indexOf(n)])
+      	topologicalSortUtil(n, visited, stack);
     }
-		return sortedList;
-	}
+    stack.add(0, node);
+  }
 
-	ArrayList<ActivityNode> findAdjacentNodes(ActivityNode node, ArrayList<ActivityNode> rootNodes) {
+	ArrayList<ActivityNode> topologicalSort() {
+    ArrayList<ActivityNode> stack = new ArrayList<ActivityNode>();
+		ArrayList<ActivityNode> sortedQ = new ArrayList<ActivityNode>();
+    boolean visited[] = new boolean[activityQueue.size()];
+    for (int i = 0; i < activityQueue.size(); i++)
+      visited[i] = false;
+    for (int i = 0; i < activityQueue.size(); i++)
+      if (visited[i] == false)
+        topologicalSortUtil(activityQueue.get(i), visited, stack);
+    while (!stack.isEmpty()) {
+      sortedQ.add(stack.get(0));
+			stack.remove(0);
+		}
+		return sortedQ;
+  }
+
+	ArrayList<ActivityNode> findAdjacentNodes(ActivityNode node) {
 		ArrayList<ActivityNode> adjancentNodes = new ArrayList<ActivityNode>();
 		for(ActivityNode curr: allNodes) {
-			if(Arrays.asList(curr.dependencies).contains(node.name)) {
+			if(Arrays.asList(curr.dependencies).contains(node.name))
 				adjancentNodes.add(curr);
-				System.out.println("found successor of " + node.name + ": " + curr.name);
-			}
 		}
 		return adjancentNodes;
 	}
 
 	void addActivities() {
-		for(ActivityNode node: activityQue)
+		for(ActivityNode node: activityQueue)
 			addActivity(node);
-		activityQue.clear();
+		activityQueue.clear();
 	}
 
 	void addActivity(ActivityNode node) {
@@ -364,7 +349,7 @@ public class GUI {
 	}
 
 	void processNetwork() {
-		activityQue = breadthSort(activityQue, this.startNodes);
+		activityQueue = topologicalSort();
 		addActivities();
 		if(startNodes.isEmpty()) {
 			{JOptionPane.showMessageDialog(null, "No Activity Nodes detected", "Could Not Process Network", JOptionPane.ERROR_MESSAGE);return;}

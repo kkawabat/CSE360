@@ -34,6 +34,7 @@ public class GUI {
     private JList<String> list = new JList<String>(listModel);
 
     private JScrollPane scrollPaneOutput;
+    private ActivityNetwork network;
 
 	/**
 	 * Launch the application.
@@ -191,98 +192,33 @@ public class GUI {
 		//check if name is valid
 		 if(strActivityName.equals("")) {JOptionPane.showMessageDialog(null, "Node must have a name", "Activity Not Generated", JOptionPane.ERROR_MESSAGE);return;}
 		 //check if node with same name exists
-		 if(getNodeByName(strActivityName, this.startNodes) != null) {JOptionPane.showMessageDialog(null, "Node with same name already exists in network", "Activity Not Generated", JOptionPane.ERROR_MESSAGE);return;}
+		 if(network.getNodeByName(strActivityName) != null) {JOptionPane.showMessageDialog(null, "Node with same name already exists in network", "Activity Not Generated", JOptionPane.ERROR_MESSAGE);return;}
 		 int duration;
 		 //check if duration is valid
 		 try{duration = Integer.parseInt(strDuration);}
 	     catch (NumberFormatException ex){JOptionPane.showMessageDialog(null, "Duration is not an integer", "Activity Not Generated", JOptionPane.ERROR_MESSAGE);return;}
 
 		 //create activity node..
-		 ActivityNode node = new ActivityNode(strActivityName, duration);
-		 //..if no predecessors add node to startNodes
-		 if(strPredecessor.equals("")) {
-			 this.startNodes.add(node);
-		 } else {
-			 //parse user input of predecessors and set predecessors and successors for the activity nodes involved
-			 String[] predecessorNameList = parsePredecessorFromString(strPredecessor);
-			 for(String name: predecessorNameList) {
-				 ActivityNode tmpPredecessor = getNodeByName(name, this.startNodes);
-				 tmpPredecessor.addSuccessor(node);
-				 node.addPredecessor(tmpPredecessor);
-			 }
-		 }
+		 network.addPotentialNode(strActivityName, duration, strPredecessor);
 		 return;
 	}
 
-	String[] parsePredecessorFromString(String strPredecessor){
-		String[] predecessorList = strPredecessor.split(",", -1);
-		return predecessorList;
-	}
-
-	ActivityNode getNodeByName(String name, ArrayList<ActivityNode> rootNodes) {
-		if(rootNodes.isEmpty()) {
-			return null;
-		}
-		ActivityNode tmpNode = null;
-		for(ActivityNode node: rootNodes) {
-				tmpNode = nodeSearch(name, node);
-				if(tmpNode != null)
-					return tmpNode;
-		}
-		return tmpNode;
-	}
-
-	ActivityNode nodeSearch(String name, ActivityNode curNode) {
-		if(curNode == null) {
-			return null;
-		}
-
-		if(curNode.name.equals(name)) {
-			return curNode;
-		}
-
-		ActivityNode tmpNode;
-		for(ActivityNode node: curNode.getSuccessors()) {
-			tmpNode = nodeSearch(name, node);
-			if(tmpNode != null) {
-				return tmpNode;
-			}
-		}
-		return null;
-	}
-
-	ArrayList<pathAndtotalDuration> getPathLists(ArrayList<ActivityNode> rootNodes) {
-		ArrayList<pathAndtotalDuration> allPaths = new ArrayList<pathAndtotalDuration>();
-		for(ActivityNode node: rootNodes) {
-			allPaths.addAll(getPartPath(node));
-		}
-		return allPaths;
-	}
-
-	ArrayList<pathAndtotalDuration> getPartPath(ActivityNode node) {
-		ArrayList<pathAndtotalDuration> curPathAndDuration = new ArrayList<pathAndtotalDuration>();
-		ArrayList<ActivityNode> successors = node.getSuccessors();
-		if(successors == null || successors.isEmpty()) {
-			curPathAndDuration.add(new pathAndtotalDuration(node.name, node.duration));
-		}else {
-			for(ActivityNode tmpNode: successors) {
-				curPathAndDuration.addAll(getPartPath(tmpNode));
-			}
-			for(pathAndtotalDuration tmpPathAndDuration: curPathAndDuration ) {
-				tmpPathAndDuration.path = node.name + "->" + tmpPathAndDuration.path;
-				tmpPathAndDuration.duration += node.duration;
-			}
-		}
-		return curPathAndDuration;
-	}
-
 	void processNetwork() {
-		if(startNodes.isEmpty()) {
+		if(network.isEmpty()) 
 			{JOptionPane.showMessageDialog(null, "No Activity Nodes detected", "Could Not Process Network", JOptionPane.ERROR_MESSAGE);return;}
-		}
-		ArrayList<pathAndtotalDuration> pathAndDurationList = getPathLists(this.startNodes);
-		listModel.removeAllElements();
+		
+		if(network.isAllNodesConnected()) 
+			{JOptionPane.showMessageDialog(null, "Not all Nodes are connected", "Could Not Process Network", JOptionPane.ERROR_MESSAGE);return;}
+		
+		if(network.isThereCycle()) 
+			{JOptionPane.showMessageDialog(null, "Cycle detected in network", "Could Not Process Network", JOptionPane.ERROR_MESSAGE);return;}
+		
+		ArrayList<pathAndtotalDuration> pathAndDurationList = network.getPathLists();
 		Collections.sort(pathAndDurationList);
+
+		//clear output in gui
+		listModel.removeAllElements();
+	;
 		for(pathAndtotalDuration tmpPath: pathAndDurationList) {
 			listModel.addElement(tmpPath.toString());
 			list.setModel(listModel);

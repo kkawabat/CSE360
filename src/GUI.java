@@ -28,14 +28,11 @@ public class GUI {
 	private JTextField textFieldActivityName;
 	private JTextField textFieldDuration;
 	private JTextField textFieldPredecessor;
-	private ArrayList<ActivityNode> startNodes = new ArrayList<ActivityNode>();
-	private ArrayList<ActivityNode> allNodes = new ArrayList<ActivityNode>();
-	private ArrayList<ActivityNode> activityQueue = new ArrayList<ActivityNode>();
-
 	private DefaultListModel<String> listModel = new DefaultListModel<String>();
-    private JList<String> list = new JList<String>(listModel);
-
-    private JScrollPane scrollPaneOutput;
+  private JList<String> list = new JList<String>(listModel);
+  private JScrollPane scrollPaneOutput;
+	private ArrayList<ActivityNode> activityQueue = new ArrayList<ActivityNode>();
+  private ActivityNetwork network = new ActivityNetwork();
 
 	/**
 	 * Launch the application.
@@ -78,14 +75,14 @@ public class GUI {
 		mntmOpenInputFile.setEnabled(false);
 		mntmOpenInputFile.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-			  int returnVal = fc.showOpenDialog(null);
+			    int returnVal = fc.showOpenDialog(null);
 
-		    if (returnVal == JFileChooser.APPROVE_OPTION) {
-		    	File file = fc.getSelectedFile();
-		    } else {
-		      System.out.print("Open command cancelled by user.\n");
-		    }
-		  }
+		        if (returnVal == JFileChooser.APPROVE_OPTION) {
+		            File file = fc.getSelectedFile();
+		        } else {
+		        	System.out.print("Open command cancelled by user.\n");
+		        }
+		   }
 		});
 
 		JMenuItem mntmSaveActivityList = new JMenuItem("Save Activity List");
@@ -156,9 +153,9 @@ public class GUI {
 		JButton btnRestart = new JButton("Restart");
 		btnRestart.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				startNodes.clear();
 				listModel.removeAllElements();
-				allNodes.clear();
+				network.startNodesList.clear();
+				network.nodeList.clear();
 				activityQueue.clear();
 			}
 		});
@@ -183,24 +180,6 @@ public class GUI {
 		frame.getContentPane().add(scrollPaneOutput);
 	}
 
-	public static boolean containsName(ArrayList<ActivityNode> list, String name) {
-    for(ActivityNode object : list) {
-      if (object.name.equals(name))
-        return true;
-    }
-    return false;
-	}
-
-	public static int indexOfName(ArrayList<ActivityNode> list, String name) {
-		int i = 0;
-    for(ActivityNode object : list) {
-      if (object.name.equals(name))
-        return i;
-			i++;
-    }
-    return -1;
-	}
-
 	void queActivity() {
 		String strActivityName = textFieldActivityName.getText();
 		String strDuration = textFieldDuration.getText();
@@ -213,57 +192,29 @@ public class GUI {
 	 //check if name is valid
 		if(strActivityName.equals("")) {JOptionPane.showMessageDialog(null, "Node must have a name", "Activity Not Generated", JOptionPane.ERROR_MESSAGE);return;}
 		//check if node with same name exists
-		if(containsName(allNodes, strActivityName)) {JOptionPane.showMessageDialog(null, "Node with same name already exists in network", "Activity Not Generated", JOptionPane.ERROR_MESSAGE);return;}
+		if(network.getNodeByName(strActivityName) != null) {JOptionPane.showMessageDialog(null, "Node with same name already exists in network", "Activity Not Generated", JOptionPane.ERROR_MESSAGE);return;}
 		int duration;
 		//check if duration is valid
 		try{duration = Integer.parseInt(strDuration);}
 			catch (NumberFormatException ex){JOptionPane.showMessageDialog(null, "Duration is not an integer", "Activity Not Generated", JOptionPane.ERROR_MESSAGE);return;}
 
-		String[] predecessorNameList = parsePredecessorFromString(strPredecessor);
+		String[] predecessorNameList = network.parsePredecessorFromString(strPredecessor);
 		ActivityNode node = new ActivityNode(strActivityName, duration, predecessorNameList);
-		allNodes.add(node);
-		if(strPredecessor.equals("")) {
-			activityQueue.add(0, node);
-		}
-		else
-			activityQueue.add(node);
+		network.addPotentialNode(node);
+		activityQueue.add(node);
 	}
 
-  void topologicalSortUtil(ActivityNode node, boolean visited[], ArrayList<ActivityNode> stack) {
-    visited[indexOfName(activityQueue, node.name)] = true;
-    ActivityNode n;
-    Iterator<ActivityNode> i = findAdjacentNodes(node).iterator();
-    while (i.hasNext()) {
-      n = i.next();
-      if (!visited[activityQueue.indexOf(n)])
-      	topologicalSortUtil(n, visited, stack);
-    }
-    stack.add(0, node);
-  }
-
-	ArrayList<ActivityNode> topologicalSort() {
-    ArrayList<ActivityNode> stack = new ArrayList<ActivityNode>();
-		ArrayList<ActivityNode> sortedQ = new ArrayList<ActivityNode>();
-    boolean visited[] = new boolean[activityQueue.size()];
-    for (int i = 0; i < activityQueue.size(); i++)
-      visited[i] = false;
-    for (int i = 0; i < activityQueue.size(); i++)
-      if (visited[i] == false)
-        topologicalSortUtil(activityQueue.get(i), visited, stack);
-    while (!stack.isEmpty()) {
-      sortedQ.add(stack.get(0));
-			stack.remove(0);
-		}
-		return sortedQ;
-  }
-
-	ArrayList<ActivityNode> findAdjacentNodes(ActivityNode node) {
-		ArrayList<ActivityNode> adjancentNodes = new ArrayList<ActivityNode>();
-		for(ActivityNode curr: allNodes) {
-			if(Arrays.asList(curr.dependencies).contains(node.name))
-				adjancentNodes.add(curr);
-		}
-		return adjancentNodes;
+	void addActivity(ActivityNode node) {
+		 if(Arrays.asList(node.dependencies).contains("")) {
+			network.startNodesList.add(node);
+		 } else {
+			 for(String name: node.dependencies) {
+				 ActivityNode tmpPredecessor = network.getNodeByName(name);
+				 tmpPredecessor.addSuccessor(node);
+				 node.addPredecessor(tmpPredecessor);
+			 }
+		 }
+		 return;
 	}
 
 	void addActivities() {
@@ -272,91 +223,24 @@ public class GUI {
 		activityQueue.clear();
 	}
 
-	void addActivity(ActivityNode node) {
-		System.out.println("adding " + node.name);
-		 if(Arrays.asList(node.dependencies).contains("")) {
-			 this.startNodes.add(node);
-		 } else {
-			 for(String name: node.dependencies) {
-				 ActivityNode tmpPredecessor = getNodeByName(name, this.startNodes);
-				 tmpPredecessor.addSuccessor(node);
-				 node.addPredecessor(tmpPredecessor);
-			 }
-		 }
-		 return;
-	}
-
-	String[] parsePredecessorFromString(String strPredecessor){
-		String[] predecessorList = strPredecessor.split(",", -1);
-		return predecessorList;
-	}
-
-	ActivityNode getNodeByName(String name, ArrayList<ActivityNode> rootNodes) {
-		if(rootNodes.isEmpty()) {
-			return null;
-		}
-		ActivityNode tmpNode = null;
-		for(ActivityNode node: rootNodes) {
-				tmpNode = nodeSearch(name, node);
-				if(tmpNode != null)
-					return tmpNode;
-		}
-		return tmpNode;
-	}
-
-	ActivityNode nodeSearch(String name, ActivityNode curNode) {
-		if(curNode == null) {
-			return null;
-		}
-
-		if(curNode.name.equals(name)) {
-			return curNode;
-		}
-
-		ActivityNode tmpNode;
-		for(ActivityNode node: curNode.getSuccessors()) {
-			tmpNode = nodeSearch(name, node);
-			if(tmpNode != null) {
-				return tmpNode;
-			}
-		}
-		return null;
-	}
-
-	ArrayList<pathAndtotalDuration> getPathLists(ArrayList<ActivityNode> rootNodes) {
-		ArrayList<pathAndtotalDuration> allPaths = new ArrayList<pathAndtotalDuration>();
-		for(ActivityNode node: rootNodes) {
-			allPaths.addAll(getPartPath(node));
-		}
-		return allPaths;
-	}
-
-	ArrayList<pathAndtotalDuration> getPartPath(ActivityNode node) {
-		ArrayList<pathAndtotalDuration> curPathAndDuration = new ArrayList<pathAndtotalDuration>();
-		ArrayList<ActivityNode> successors = node.getSuccessors();
-		if(successors == null || successors.isEmpty()) {
-			curPathAndDuration.add(new pathAndtotalDuration(node.name, node.duration));
-		} else {
-			for(ActivityNode tmpNode: successors) {
-				curPathAndDuration.addAll(getPartPath(tmpNode));
-			}
-			for(pathAndtotalDuration tmpPathAndDuration: curPathAndDuration ) {
-				tmpPathAndDuration.path = node.name + "->" + tmpPathAndDuration.path;
-				tmpPathAndDuration.duration += node.duration;
-			}
-		}
-		return curPathAndDuration;
-	}
-
 	void processNetwork() {
-		activityQueue = topologicalSort();
+		network.processQueue(activityQueue);
 		addActivities();
-		if(startNodes.isEmpty()) {
+		if(network.isEmpty())
 			{JOptionPane.showMessageDialog(null, "No Activity Nodes detected", "Could Not Process Network", JOptionPane.ERROR_MESSAGE);return;}
-		}
-		ArrayList<pathAndtotalDuration> pathAndDurationList = getPathLists(this.startNodes);
-		listModel.removeAllElements();
+
+		if(network.isAllNodesConnected())
+			{JOptionPane.showMessageDialog(null, "Not all Nodes are connected", "Could Not Process Network", JOptionPane.ERROR_MESSAGE);return;}
+
+		if(network.isThereCycle())
+			{JOptionPane.showMessageDialog(null, "Cycle detected in network", "Could Not Process Network", JOptionPane.ERROR_MESSAGE);return;}
+
+		ArrayList<pathAndtotalDuration> pathAndDurationList = network.getPathLists();
 		Collections.sort(pathAndDurationList);
+
+		//clear output in gui
+		listModel.removeAllElements();
+	;
 		for(pathAndtotalDuration tmpPath: pathAndDurationList) {
 			listModel.addElement(tmpPath.toString());
 			list.setModel(listModel);

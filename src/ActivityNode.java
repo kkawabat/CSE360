@@ -9,15 +9,10 @@ public class ActivityNode {
     ArrayList<ActivityNode> successors = new ArrayList<ActivityNode>();
     String[] dependencies;
 
-	public ActivityNode(String name, int duration, String[] dependencies) {
+  public ActivityNode(String name, int duration, String[] dependencies) {
 		this.name = name;
 		this.duration = duration;
 		this.dependencies = dependencies;
-	}
-
-	public ActivityNode(String name, int duration) {
-		this.name = name;
-		this.duration = duration;
 	}
 
 	public void addSuccessor(ActivityNode successor) {

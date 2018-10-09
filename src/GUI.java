@@ -235,9 +235,9 @@ public class GUI {
 			{JOptionPane.showMessageDialog(null, "No Activity Nodes detected", "Could Not Process Network", JOptionPane.ERROR_MESSAGE);return;}
 
 		if(!network.allNodesDefinied(activityQueue))
-			{JOptionPane.showMessageDialog(null, "Not all dependent nodes defined", "Could Not Process Network", JOptionPane.ERROR_MESSAGE);network.removeNodes(activityQueue);activityQueue.clear();return;}
+			{JOptionPane.showMessageDialog(null, "Not all antecedent nodes defined", "Could Not Process Network", JOptionPane.ERROR_MESSAGE);network.removeNodes(activityQueue);activityQueue.clear();return;}
 
-		if(network.isAllNodesConnected())
+		if(!network.isAllNodesConnected())
 			{JOptionPane.showMessageDialog(null, "Not all Nodes are connected", "Could Not Process Network", JOptionPane.ERROR_MESSAGE);network.removeNodes(activityQueue);activityQueue.clear();return;}
 
 		if(network.isThereCycle(activityQueue))

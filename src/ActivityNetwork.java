@@ -51,6 +51,19 @@ public class ActivityNetwork {
 		return adjancentNodes;
 	}
 
+  private ArrayList<ActivityNode> findDoubleyAdjacentNodes(ActivityNode node, ArrayList<ActivityNode> list) {
+		ArrayList<ActivityNode> adjancentNodes = new ArrayList<ActivityNode>();
+		for(ActivityNode curr: list) {
+			if(Arrays.asList(curr.dependencies).contains(node.name))
+				adjancentNodes.add(curr);
+		}
+    for(String predecessorName: node.dependencies) {
+      if(!predecessorName.equals(""))
+        adjancentNodes.add(getNodeByName(predecessorName));
+    }
+		return adjancentNodes;
+	}
+
 	private static int indexOfName(ArrayList<ActivityNode> list, String name) {
 		int i = 0;
     for(ActivityNode object : list) {
@@ -112,6 +125,18 @@ boolean cycleUtil(ActivityNode node, char[] state, ArrayList<ActivityNode> activ
   return false;
 }
 
+private void connectivityUtil(ActivityNode node, boolean visited[], ArrayList<ActivityNode> stack, ArrayList<ActivityNode> list) {
+  visited[list.indexOf(node)] = true; //set current node to visited
+  ActivityNode n;
+  Iterator<ActivityNode> i = findDoubleyAdjacentNodes(node, this.nodeList).iterator();
+  while (i.hasNext()) {
+    n = i.next();
+    if(!visited[list.indexOf(n)]) //for each successor recurse that hasn't been visitied recurse
+      connectivityUtil(n, visited, stack, list);
+  }
+  stack.add(0, node);
+}
+
 
 	public ArrayList<pathAndtotalDuration> getPathLists() {
 		ArrayList<pathAndtotalDuration> curPathAndDuration = new ArrayList<pathAndtotalDuration>();
@@ -162,8 +187,14 @@ boolean cycleUtil(ActivityNode node, char[] state, ArrayList<ActivityNode> activ
   }
 
 	public boolean isAllNodesConnected() {
-		//to do
-		return false;
+    ArrayList<ActivityNode> stack = new ArrayList<ActivityNode>();
+    boolean visited[] = new boolean[this.nodeList.size()];
+    connectivityUtil(this.nodeList.get(0), visited, stack, this.nodeList);
+    for(ActivityNode node: this.nodeList) {
+      if(stack.indexOf(node) == -1)
+        return false;
+    }
+    return true;
 	}
 
 	public boolean isThereCycle(ArrayList<ActivityNode> activityQueue) {

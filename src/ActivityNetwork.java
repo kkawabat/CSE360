@@ -34,18 +34,26 @@ public class ActivityNetwork {
 		return;
 	}
 
-	private ArrayList<ActivityNode> findAdjacentNodes(ActivityNode node, ArrayList<ActivityNode> nodeList) {
+  public void removeNodes(ArrayList<ActivityNode> list) {
+    for(ActivityNode node : list) {
+      this.nodeList.remove(node);
+      this.startNodesList.remove(node);
+    }
+  }
+
+  //returns list of successors of node
+	private ArrayList<ActivityNode> findAdjacentNodes(ActivityNode node, ArrayList<ActivityNode> list) {
 		ArrayList<ActivityNode> adjancentNodes = new ArrayList<ActivityNode>();
-		for(ActivityNode curr: nodeList) {
+		for(ActivityNode curr: list) {
 			if(Arrays.asList(curr.dependencies).contains(node.name))
 				adjancentNodes.add(curr);
 		}
 		return adjancentNodes;
 	}
 
-	private static int indexOfName(ArrayList<ActivityNode> nodeList, String name) {
+	private static int indexOfName(ArrayList<ActivityNode> list, String name) {
 		int i = 0;
-    for(ActivityNode object : nodeList) {
+    for(ActivityNode object : list) {
       if (object.name.equals(name))
         return i;
 			i++;
@@ -54,15 +62,15 @@ public class ActivityNetwork {
 	}
 
 	private void topologicalSortUtil(ActivityNode node, boolean visited[], ArrayList<ActivityNode> stack, ArrayList<ActivityNode> activityQueue) {
-    visited[indexOfName(activityQueue, node.name)] = true;
+    visited[indexOfName(activityQueue, node.name)] = true; //set current node to visited
     ActivityNode n;
     Iterator<ActivityNode> i = findAdjacentNodes(node, this.nodeList).iterator();
     while (i.hasNext()) {
       n = i.next();
-      if (!visited[activityQueue.indexOf(n)])
+      if (!visited[activityQueue.indexOf(n)]) //for each successor recurse that hasn't been visitied recurse
       	topologicalSortUtil(n, visited, stack, activityQueue);
     }
-    stack.add(0, node);
+    stack.add(0, node); //as recursion unwinds nodes get added to the stack
   }
 
 	private ArrayList<ActivityNode> topologicalSort(ArrayList<ActivityNode> activityQueue) {
@@ -70,12 +78,12 @@ public class ActivityNetwork {
 		ArrayList<ActivityNode> sortedQ = new ArrayList<ActivityNode>();
     boolean visited[] = new boolean[activityQueue.size()];
     for (int i = 0; i < activityQueue.size(); i++)
-      if (visited[i] == false)
+      if (!visited[i]) //for each node that needs to be added that hasn't been visited call topologicalSortUtil on that node
         topologicalSortUtil(activityQueue.get(i), visited, stack, activityQueue);
-    while (!stack.isEmpty()) {
+    while (!stack.isEmpty()) { //pop everythin of the stack into a queue for the desired order
       sortedQ.add(stack.remove(0));
 		}
-		return sortedQ;
+		return sortedQ; //return a beautifully sorted queue of nodes
   }
 
 	String[] parsePredecessorFromString(String strPredecessor){
@@ -88,6 +96,22 @@ public class ActivityNetwork {
 		this.isProcessed = true;
 		return;
 	}
+
+boolean cycleUtil(ActivityNode node, char[] state, ArrayList<ActivityNode> activityQueue) {
+  state[activityQueue.indexOf(node)] = 'p';
+  ActivityNode n;
+  Iterator<ActivityNode> i = findAdjacentNodes(node, this.nodeList).iterator();
+  while (i.hasNext()) {
+    n = i.next();
+    if(state[activityQueue.indexOf(n)] == 'p')
+      return true;
+    if (state[activityQueue.indexOf(n)] == 's' && cycleUtil(n, state, activityQueue))
+      return true;
+  }
+  state[activityQueue.indexOf(node)] = 'f';
+  return false;
+}
+
 
 	public ArrayList<pathAndtotalDuration> getPathLists() {
 		ArrayList<pathAndtotalDuration> curPathAndDuration = new ArrayList<pathAndtotalDuration>();
@@ -127,13 +151,32 @@ public class ActivityNetwork {
 		return nodeList.isEmpty();
 	}
 
+  public boolean allNodesDefinied(ArrayList<ActivityNode> list) {
+    for(ActivityNode node: list) {
+      for(String name: node.dependencies) {
+        if(indexOfName(this.nodeList, name) == -1 && !name.equals(""))
+          return false;
+      }
+    }
+    return true;
+  }
+
 	public boolean isAllNodesConnected() {
 		//to do
 		return false;
 	}
 
-	public boolean isThereCycle() {
-		//to do
-		return false;
-	}
+	public boolean isThereCycle(ArrayList<ActivityNode> activityQueue) {
+    int size = activityQueue.size();
+    char[] state = new char[size];
+    for(int i = 0; i < size; i++)
+      state[i] = 's';
+    for(int i = 0; i < size; i++) {
+      if(state[i] == 's') {
+        if(cycleUtil(activityQueue.get(i), state, activityQueue) == true)
+          return true;
+      }
+    }
+    return false;
+  }
 }

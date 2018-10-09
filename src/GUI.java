@@ -124,7 +124,7 @@ public class GUI {
 		frame.getContentPane().add(textFieldPredecessor);
 		textFieldPredecessor.setColumns(10);
 
-		JLabel lblInput = new JLabel("Input");
+		JLabel lblInput = new JLabel("Inputs (seperate multiple arguments with \",\")");
 		lblInput.setBounds(10, 10, 45, 15);
 		frame.getContentPane().add(lblInput);
 
@@ -180,6 +180,8 @@ public class GUI {
 		frame.getContentPane().add(scrollPaneOutput);
 	}
 
+	//adds new node to queue and the network's nodeList,
+	//if there is a syntactic error in the format of the user's imput this is were the Exception will be thrown
 	void queActivity() {
 		String strActivityName = textFieldActivityName.getText();
 		String strDuration = textFieldDuration.getText();
@@ -197,16 +199,18 @@ public class GUI {
 		//check if duration is valid
 		try{duration = Integer.parseInt(strDuration);}
 			catch (NumberFormatException ex){JOptionPane.showMessageDialog(null, "Duration is not an integer", "Activity Not Generated", JOptionPane.ERROR_MESSAGE);return;}
-
 		String[] predecessorNameList = network.parsePredecessorFromString(strPredecessor);
+		if(Arrays.asList(predecessorNameList).contains(strActivityName)) {JOptionPane.showMessageDialog(null, "node can't depend on itself", "Activity Not Generated", JOptionPane.ERROR_MESSAGE);return;}
+
 		ActivityNode node = new ActivityNode(strActivityName, duration, predecessorNameList);
-		network.addPotentialNode(node);
+		network.addPotentialNode(node); //adds to the network's list of all nodes
 		activityQueue.add(node);
 	}
 
+	//strings together node by setting successors and predecessors
 	void addActivity(ActivityNode node) {
 		 if(Arrays.asList(node.dependencies).contains("")) {
-			network.startNodesList.add(node);
+			network.startNodesList.add(node); //it's a root node so add it to list of root nodes and no need to string it
 		 } else {
 			 for(String name: node.dependencies) {
 				 ActivityNode tmpPredecessor = network.getNodeByName(name);
@@ -217,24 +221,30 @@ public class GUI {
 		 return;
 	}
 
+	//string on each node in the queue of nodes to be added
 	void addActivities() {
-		for(ActivityNode node: activityQueue)
+		for(ActivityNode node: activityQueue) {
+			System.out.println("adding " + node.name);
 			addActivity(node);
-		activityQueue.clear();
+		}
+		activityQueue.clear(); //everything from que has been added so flush it
 	}
 
 	void processNetwork() {
-		network.processQueue(activityQueue);
-		addActivities();
 		if(network.isEmpty())
 			{JOptionPane.showMessageDialog(null, "No Activity Nodes detected", "Could Not Process Network", JOptionPane.ERROR_MESSAGE);return;}
 
+		if(!network.allNodesDefinied(activityQueue))
+			{JOptionPane.showMessageDialog(null, "Not all dependent nodes defined", "Could Not Process Network", JOptionPane.ERROR_MESSAGE);network.removeNodes(activityQueue);activityQueue.clear();return;}
+
 		if(network.isAllNodesConnected())
-			{JOptionPane.showMessageDialog(null, "Not all Nodes are connected", "Could Not Process Network", JOptionPane.ERROR_MESSAGE);return;}
+			{JOptionPane.showMessageDialog(null, "Not all Nodes are connected", "Could Not Process Network", JOptionPane.ERROR_MESSAGE);network.removeNodes(activityQueue);activityQueue.clear();return;}
 
-		if(network.isThereCycle())
-			{JOptionPane.showMessageDialog(null, "Cycle detected in network", "Could Not Process Network", JOptionPane.ERROR_MESSAGE);return;}
+		if(network.isThereCycle(activityQueue))
+			{JOptionPane.showMessageDialog(null, "Cycle detected in network", "Could Not Process Network", JOptionPane.ERROR_MESSAGE);network.removeNodes(activityQueue);activityQueue.clear();return;}
 
+		network.processQueue(activityQueue); //sort the queue into topological order
+		addActivities(); //string together the nodes
 		ArrayList<pathAndtotalDuration> pathAndDurationList = network.getPathLists();
 		Collections.sort(pathAndDurationList);
 

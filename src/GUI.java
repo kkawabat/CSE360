@@ -71,6 +71,7 @@ public class GUI {
 		JMenu mnFiles = new JMenu("Files");
 		menuBar.add(mnFiles);
 
+		//add the option to load an activity list
 		JMenuItem mntmOpenInputFile = new JMenuItem("Load Activity List");
 		mntmOpenInputFile.setEnabled(false);
 		mntmOpenInputFile.addActionListener(new ActionListener() {
@@ -85,11 +86,13 @@ public class GUI {
 		   }
 		});
 
+		//options to save current activity list
 		JMenuItem mntmSaveActivityList = new JMenuItem("Save Activity List");
 		mntmSaveActivityList.setEnabled(false);
 		mnFiles.add(mntmSaveActivityList);
 		mnFiles.add(mntmOpenInputFile);
 
+		//menu option 'quit' to exit GUI
 		JMenuItem mntmQuit = new JMenuItem("Quit");
 		mntmQuit.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -128,6 +131,7 @@ public class GUI {
 		lblInput.setBounds(10, 10, 45, 15);
 		frame.getContentPane().add(lblInput);
 
+		//button, once pressed begin adding activity to activity list
 		JButton btnAddActivity = new JButton("Add Activity");
 		btnAddActivity.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -137,6 +141,7 @@ public class GUI {
 		btnAddActivity.setBounds(10, 130, 130, 30);
 		frame.getContentPane().add(btnAddActivity);
 
+		//button, once pressed begin processing current activity list
 		JButton btnProcess = new JButton("Process");
 		btnProcess.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -150,6 +155,7 @@ public class GUI {
 		lblOutput.setBounds(10, 170, 45, 15);
 		frame.getContentPane().add(lblOutput);
 
+		//button, once pressed clear current activity list 
 		JButton btnRestart = new JButton("Restart");
 		btnRestart.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {

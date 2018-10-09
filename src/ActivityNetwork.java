@@ -126,6 +126,7 @@ public class ActivityNetwork {
 		return;
 	}
 
+	//recursive function to check the connectivity of a node
 	private void connectivityUtil(ActivityNode node, boolean visited[], ArrayList<ActivityNode> stack, ArrayList<ActivityNode> list) {
   		visited[list.indexOf(node)] = true; //set current node to visited
   		ActivityNode n;

@@ -1,3 +1,14 @@
-Welcome to Our Activity Manager
-    This application will track activities and the path taken from the starting node the ending node. Each time a path is taken the duration will be displayed with the highest duration at the top of the "Output" section and the lowest duration at the bottom. 
-    The help page will assist you for any questions that arise when inputting information into the application. 
+=======================================================
+                         About
+=======================================================
+This is a GUI application used to generate a PERT network 
+and listing all possible paths through the network sorted 
+by the duration of the path.   
+
+This application is a team project for CSE360 Fall 2018
+
+This application was created by Team 9 of Rec-Mon 7:30:
+    Kawabata, Kan
+    Shannon, Kevin
+    Smith, Maxfield
+

@@ -1,0 +1,50 @@
+Welcome to the Help Page
+    Entering a New Activity:
+        -When entering a new activity it is important to enter the correct information with the correct syntax
+
+	    -Activity Name Text Box: Enter any characters, numbers included, as you would like. 
+		Example Activity Names: A, First Activity, 1, Node One
+
+
+            -Duration Text Box: This box only accepts integers if an integer is not entered you will be required to keep trying until an integer is used
+                Example Durations: 1, 15, 194
+		Durations that will cause errors: A, 3.4, *8, 
+
+
+            -Predecessors Text Box: This box asks for the predecessors for the current Activity Name. Enter as many predecessors that are required and be sure to separate them using         			            a comma ','. If the current Activity Name does not have any predecessors you may leave the field blank
+
+                Example Predecessors: If the current Activity Name is "First", since first does not have any predecessors the text box would be left blank
+
+				      If the current Activity Name is "Second", and "Second" has the predecessor "First" then the correct predecessors box would be: First
+                   
+     				      If the current Activity Name is "Third", and "Third" has the predecessors, or events that must happen before it, "First" and "Second", then the 	                              correct predecessors text box would be: First, Second 
+
+	-Once all information is accounted for it is now safe to press "Add Activity". If an error arises refer back to this section and check if the information entered is correct
+
+
+    Process:
+        -Once all desired Activities are entered it is time to press "Process". "Process" takes the information entered and outputs the path and total duration from most time taken 	 on top, decreasing in time taken to the bottom. 
+	-Make sure to press "Add Activity" if an Activity's information still remains in the text boxes as this information will not be used if "Process" is pressed before this 	 information is entered 
+
+
+    Restart:
+	-Press "Restart" if you would like to delete your progress thus far. Pressing "Restart" means that all prior information will be deleted/lost so be sure to only press this 	 when ready to fully start over.
+
+
+    Quit:
+	-"Quit" is found underneath the "Files" tab located near the top left of the GUI window. Once pressed, it deletes all data entered and closes the GUI window terminating the 	 session
+
+
+
+										******IMPORTANT INFORMATION*******
+
+		Make sure to keep track of predecessors	and activities. 
+
+		Errors will arise once "Process" has been pressed if:
+		    -Your Activities contain a cycle. A Cycle occurs when an Activity relies on that same Activity. Example of a cycle is if Activity A has predecessor Activity B, 		     but Activity B has predecessor Activity A. Since both activities rely on the other completing first this results in an endless loop thus creating an error. A 		     simple way to 
+		    -Not all of your Activities are connected. An Activity that is not connected occurs when the current activity being looked at has predecessors that are 			     undefined. An example of this occurs is: current Activity is "Four" and "Four's" predecessor is "Two", nothing is wrong with this input. But when "Two" is never 		     entered as an Activity that means "Four" does not have a defined predecessor which means that Activity "Four" is not "connected"
+
+		Make a table or graph of all the information being entered so it is not easy to lose any possible connections. A table and graph make it easier to visualize the path 		and to check if there are any cycles before the information is entered or see if there are stray Activities
+			              
+	                              
+				      

@@ -29,14 +29,14 @@ public class GUI {
 	private JTextField textFieldDuration;
 	private JTextField textFieldPredecessor;
 	private DefaultListModel<String> listModel = new DefaultListModel<String>();
-  private JList<String> list = new JList<String>(listModel);
-  private JScrollPane scrollPaneOutput;
+	private JList<String> list = new JList<String>(listModel);
+	private JScrollPane scrollPaneOutput;
 	private ArrayList<ActivityNode> activityQueue = new ArrayList<ActivityNode>();
-  private ActivityNetwork network = new ActivityNetwork();
+	private ActivityNetwork network = new ActivityNetwork();
 
 	/**
-	 * Launch the application.
-	 */
+	* Launch the application.
+	*/
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
@@ -51,15 +51,15 @@ public class GUI {
 	}
 
 	/**
-	 * Create the application.
-	 */
+	* Create the application.
+	*/
 	public GUI() {
 		initialize();
 	}
 
 	/**
-	 * Initialize the contents of the frame.
-	 */
+	* Initialize the contents of the frame.
+	*/
 	private void initialize() {
 		frame = new JFrame();
 		frame.setBounds(100, 100, 442, 432);
@@ -76,14 +76,14 @@ public class GUI {
 		mntmOpenInputFile.setEnabled(false);
 		mntmOpenInputFile.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-			    int returnVal = fc.showOpenDialog(null);
+				int returnVal = fc.showOpenDialog(null);
 
-		        if (returnVal == JFileChooser.APPROVE_OPTION) {
-		            File file = fc.getSelectedFile();
-		        } else {
-		        	System.out.print("Open command cancelled by user.\n");
-		        }
-		   }
+				if (returnVal == JFileChooser.APPROVE_OPTION) {
+					File file = fc.getSelectedFile();
+				} else {
+					System.out.print("Open command cancelled by user.\n");
+				}
+			}
 		});
 
 		//options to save current activity list
@@ -96,7 +96,7 @@ public class GUI {
 		JMenuItem mntmQuit = new JMenuItem("Quit");
 		mntmQuit.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				 System.exit(1);
+				System.exit(1);
 			}
 		});
 
@@ -155,7 +155,7 @@ public class GUI {
 		lblOutput.setBounds(10, 170, 45, 15);
 		frame.getContentPane().add(lblOutput);
 
-		//button, once pressed clear current activity list 
+		//button, once pressed clear current activity list
 		JButton btnRestart = new JButton("Restart");
 		btnRestart.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -186,6 +186,16 @@ public class GUI {
 		frame.getContentPane().add(scrollPaneOutput);
 	}
 
+	private static boolean hasDuplicatePredecessors(String[] list) {
+		ArrayList<String> result = new ArrayList<>();
+		HashSet<String> set = new HashSet<>();
+		for(String item : list) {
+			if(!set.add(item))
+			return true;
+		}
+		return false;
+	}
+
 	//adds new node to queue and the network's nodeList,
 	//if there is a syntactic error in the format of the user's imput this is were the Exception will be thrown
 	void queActivity() {
@@ -197,7 +207,7 @@ public class GUI {
 		textFieldDuration.setText("");
 		textFieldPredecessor.setText("");
 
-	 //check if name is valid
+		//check if name is valid
 		if(strActivityName.equals("")) {JOptionPane.showMessageDialog(null, "Node must have a name", "Activity Not Generated", JOptionPane.ERROR_MESSAGE);return;}
 		//check if node with same name exists
 		if(network.getNodeByName(strActivityName) != null) {JOptionPane.showMessageDialog(null, "Node with same name already exists in network", "Activity Not Generated", JOptionPane.ERROR_MESSAGE);return;}
@@ -206,7 +216,9 @@ public class GUI {
 		try{duration = Integer.parseInt(strDuration);}
 			catch (NumberFormatException ex){JOptionPane.showMessageDialog(null, "Duration is not an integer", "Activity Not Generated", JOptionPane.ERROR_MESSAGE);return;}
 		String[] predecessorNameList = network.parsePredecessorFromString(strPredecessor);
-		if(Arrays.asList(predecessorNameList).contains(strActivityName)) {JOptionPane.showMessageDialog(null, "node can't depend on itself", "Activity Not Generated", JOptionPane.ERROR_MESSAGE);return;}
+		if(Arrays.asList(predecessorNameList).contains(strActivityName)) {JOptionPane.showMessageDialog(null, "Node can't depend on itself", "Activity Not Generated", JOptionPane.ERROR_MESSAGE);return;}
+		//check if duplicate dependencies on same node
+		if(hasDuplicatePredecessors(predecessorNameList)) {JOptionPane.showMessageDialog(null, "Node cannot have duplicate predecessors", "Activity Not Generated", JOptionPane.ERROR_MESSAGE);return;}
 
 		ActivityNode node = new ActivityNode(strActivityName, duration, predecessorNameList);
 		network.addPotentialNode(node); //adds to the network's list of all nodes
@@ -215,16 +227,16 @@ public class GUI {
 
 	//strings together node by setting successors and predecessors
 	void addActivity(ActivityNode node) {
-		 if(Arrays.asList(node.dependencies).contains("")) {
+		if(Arrays.asList(node.dependencies).contains("")) {
 			network.startNodesList.add(node); //it's a root node so add it to list of root nodes and no need to string it
-		 } else {
-			 for(String name: node.dependencies) {
-				 ActivityNode tmpPredecessor = network.getNodeByName(name);
-				 tmpPredecessor.addSuccessor(node);
-				 node.addPredecessor(tmpPredecessor);
-			 }
-		 }
-		 return;
+		} else {
+			for(String name: node.dependencies) {
+				ActivityNode tmpPredecessor = network.getNodeByName(name);
+				tmpPredecessor.addSuccessor(node);
+				node.addPredecessor(tmpPredecessor);
+			}
+		}
+		return;
 	}
 
 	//string on each node in the queue of nodes to be added
@@ -253,10 +265,9 @@ public class GUI {
 		addActivities(); //string together the nodes
 		ArrayList<pathAndtotalDuration> pathAndDurationList = network.getPathLists();
 		Collections.sort(pathAndDurationList);
-
+		
 		//clear output in gui
 		listModel.removeAllElements();
-	;
 		for(pathAndtotalDuration tmpPath: pathAndDurationList) {
 			listModel.addElement(tmpPath.toString());
 			list.setModel(listModel);

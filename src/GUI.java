@@ -81,27 +81,6 @@ public class GUI {
 		JMenu mnFiles = new JMenu("Files");
 		menuBar.add(mnFiles);
 
-		//add the option to load an activity list
-		JMenuItem mntmOpenInputFile = new JMenuItem("Load Activity List");
-		mntmOpenInputFile.setEnabled(false);
-		mntmOpenInputFile.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				int returnVal = fc.showOpenDialog(null);
-
-				if (returnVal == JFileChooser.APPROVE_OPTION) {
-					File file = fc.getSelectedFile();
-				} else {
-					System.out.print("Open command cancelled by user.\n");
-				}
-			}
-		});
-
-		//options to save current activity list
-		JMenuItem mntmSaveActivityList = new JMenuItem("Save Activity List");
-		mntmSaveActivityList.setEnabled(false);
-		mnFiles.add(mntmSaveActivityList);
-		mnFiles.add(mntmOpenInputFile);
-
 		//menu option 'quit' to exit GUI
 		JMenuItem mntmQuit = new JMenuItem("Quit");
 		mntmQuit.addActionListener(new ActionListener() {
@@ -214,7 +193,7 @@ public class GUI {
 		HashSet<String> set = new HashSet<>();
 		for(String item : list) {
 			if(!set.add(item))
-			return true;
+				return true;
 		}
 		return false;
 	}

@@ -1,9 +1,9 @@
 =======================================================
                          About
 =======================================================
-This is a GUI application used to generate a PERT network 
-and listing all possible paths through the network sorted 
-by the duration of the path.   
+This is a GUI application used to generate a PERT
+network and listing all possible paths through the
+network sorted by the duration of the path.
 
 This application is a team project for CSE360 Fall 2018
 
@@ -11,4 +11,3 @@ This application was created by Team 9 of Rec-Mon 7:30:
     Kawabata, Kan
     Shannon, Kevin
     Smith, Maxfield
-

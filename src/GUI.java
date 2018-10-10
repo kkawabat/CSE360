@@ -20,19 +20,28 @@ import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
 import javax.swing.JList;
 import javax.swing.JScrollPane;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.BufferedReader;
+import java.awt.Font;
 
 public class GUI {
 
+	//GUI elements
 	private JFrame frame;
 	final JFileChooser fc = new JFileChooser();
 	private JTextField textFieldActivityName;
 	private JTextField textFieldDuration;
 	private JTextField textFieldPredecessor;
 	private DefaultListModel<String> listModel = new DefaultListModel<String>();
-  private JList<String> list = new JList<String>(listModel);
-  private JScrollPane scrollPaneOutput;
+	private JList<String> list = new JList<String>(listModel);
+	private JScrollPane scrollPaneOutput;
+	
+	//activityNetowrk elements
 	private ArrayList<ActivityNode> activityQueue = new ArrayList<ActivityNode>();
-  private ActivityNetwork network = new ActivityNetwork();
+	private ActivityNetwork network = new ActivityNetwork();
 
 	/**
 	 * Launch the application.
@@ -62,6 +71,7 @@ public class GUI {
 	 */
 	private void initialize() {
 		frame = new JFrame();
+		frame.setResizable(false);
 		frame.setBounds(100, 100, 442, 432);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -106,9 +116,21 @@ public class GUI {
 		menuBar.add(mnHelp);
 
 		JMenuItem mntmAbout = new JMenuItem("About");
+		mntmAbout.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				displayTextFromFile("src\\about.txt");
+				return;
+			}
+		});
 		mnHelp.add(mntmAbout);
 
 		JMenuItem mntmHelp = new JMenuItem("Help");
+		mntmHelp.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				displayTextFromFile("src\\help.txt");
+				return;
+			}
+		});
 		mnHelp.add(mntmHelp);
 		frame.getContentPane().setLayout(null);
 
@@ -128,7 +150,7 @@ public class GUI {
 		textFieldPredecessor.setColumns(10);
 
 		JLabel lblInput = new JLabel("Inputs (seperate multiple arguments with \",\")");
-		lblInput.setBounds(10, 10, 45, 15);
+		lblInput.setBounds(10, 10, 396, 15);
 		frame.getContentPane().add(lblInput);
 
 		//button, once pressed begin adding activity to activity list
@@ -182,12 +204,13 @@ public class GUI {
 
 		scrollPaneOutput = new JScrollPane();
 		scrollPaneOutput.setBounds(10, 185, 410, 180);
+		list.setFont(new Font("Consolas", Font.PLAIN, 12));
 		scrollPaneOutput.setViewportView(list);
 		frame.getContentPane().add(scrollPaneOutput);
 	}
 
 	//adds new node to queue and the network's nodeList,
-	//if there is a syntactic error in the format of the user's imput this is were the Exception will be thrown
+	//if there is a syntactic error in the format of the user's input this is were the Exception will be thrown
 	void queActivity() {
 		String strActivityName = textFieldActivityName.getText();
 		String strDuration = textFieldDuration.getText();
@@ -233,9 +256,10 @@ public class GUI {
 			System.out.println("adding " + node.name);
 			addActivity(node);
 		}
-		activityQueue.clear(); //everything from que has been added so flush it
+		activityQueue.clear(); //everything from queue has been added so flush it
 	}
 
+	//checks that the network is a valid activity diagram, then process the nodes and print the list of paths
 	void processNetwork() {
 		if(network.isEmpty())
 			{JOptionPane.showMessageDialog(null, "No Activity Nodes detected", "Could Not Process Network", JOptionPane.ERROR_MESSAGE);return;}
@@ -254,16 +278,41 @@ public class GUI {
 		ArrayList<pathAndtotalDuration> pathAndDurationList = network.getPathLists();
 		Collections.sort(pathAndDurationList);
 
-		//clear output in gui
+		//clear output in GUI
 		listModel.removeAllElements();
-	;
+		//re-populate output with list of paths
 		for(pathAndtotalDuration tmpPath: pathAndDurationList) {
 			listModel.addElement(tmpPath.toString());
 			list.setModel(listModel);
-			scrollPaneOutput.revalidate();
-			scrollPaneOutput.repaint();
 			System.out.println(tmpPath.toString());
 		}
+		scrollPaneOutput.revalidate();
+		scrollPaneOutput.repaint();
+		return;
+	}
+	
+	void displayTextFromFile(String file_name) {
+		//clear output in GUI
+		listModel.removeAllElements();
+		//re-populate output with text from file_name
+		try {
+			File file = new File(file_name);
+			FileReader fileReader = new FileReader(file);
+			BufferedReader bufferedReader = new BufferedReader(fileReader);
+			StringBuffer stringBuffer = new StringBuffer();
+			String line;
+			while ((line = bufferedReader.readLine()) != null) {
+				listModel.addElement(line);
+			}
+			fileReader.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		list.setModel(listModel);
+		scrollPaneOutput.revalidate();
+		scrollPaneOutput.repaint();
 		return;
 	}
 }
+
+

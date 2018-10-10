@@ -196,6 +196,14 @@ public class GUI {
 		return false;
 	}
 
+	private static boolean hasEmptyPredecessor(String[] list) {
+		for(String item : list) {
+			if(item.equals("") && list.length > 1) //if there is empty string among more than 1 dependency
+				return true;
+		}
+		return false;
+	}
+
 	//adds new node to queue and the network's nodeList,
 	//if there is a syntactic error in the format of the user's imput this is were the Exception will be thrown
 	void queActivity() {
@@ -216,9 +224,12 @@ public class GUI {
 		try{duration = Integer.parseInt(strDuration);}
 			catch (NumberFormatException ex){JOptionPane.showMessageDialog(null, "Duration is not an integer", "Activity Not Generated", JOptionPane.ERROR_MESSAGE);return;}
 		String[] predecessorNameList = network.parsePredecessorFromString(strPredecessor);
+		//check if a node as dependency on itself
 		if(Arrays.asList(predecessorNameList).contains(strActivityName)) {JOptionPane.showMessageDialog(null, "Node can't depend on itself", "Activity Not Generated", JOptionPane.ERROR_MESSAGE);return;}
 		//check if duplicate dependencies on same node
 		if(hasDuplicatePredecessors(predecessorNameList)) {JOptionPane.showMessageDialog(null, "Node cannot have duplicate predecessors", "Activity Not Generated", JOptionPane.ERROR_MESSAGE);return;}
+		//check if dependency on empty string
+		if(hasEmptyPredecessor(predecessorNameList)) {JOptionPane.showMessageDialog(null, "Node cannot have empty predecessors", "Activity Not Generated", JOptionPane.ERROR_MESSAGE);return;}
 
 		ActivityNode node = new ActivityNode(strActivityName, duration, predecessorNameList);
 		network.addPotentialNode(node); //adds to the network's list of all nodes
@@ -265,7 +276,7 @@ public class GUI {
 		addActivities(); //string together the nodes
 		ArrayList<pathAndtotalDuration> pathAndDurationList = network.getPathLists();
 		Collections.sort(pathAndDurationList);
-		
+
 		//clear output in gui
 		listModel.removeAllElements();
 		for(pathAndtotalDuration tmpPath: pathAndDurationList) {

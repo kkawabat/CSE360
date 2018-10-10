@@ -26,7 +26,7 @@ public class ActivityNetwork {
         ArrayList<ActivityNode> startNodes = new ArrayList<ActivityNode>();
         for(ActivityNode node : this.nodeList) {
             if(node.predecessors.isEmpty())
-            startNodes.add(node);
+                startNodes.add(node);
         }
         return startNodes;
     }
@@ -126,19 +126,6 @@ public class ActivityNetwork {
         return;
     }
 
-    //recursive function to check the connectivity of a node
-    private void connectivityUtil(ActivityNode node, boolean visited[], ArrayList<ActivityNode> stack, ArrayList<ActivityNode> list) {
-        visited[list.indexOf(node)] = true; //set current node to visited
-        ActivityNode n;
-        Iterator<ActivityNode> i = findDoubleyAdjacentNodes(node, this.nodeList).iterator();
-        while (i.hasNext()) {
-            n = i.next();
-            if(!visited[list.indexOf(n)]) //for each successor recurse that hasn't been visitied recurse
-                connectivityUtil(n, visited, stack, list);
-        }
-        stack.add(0, node);
-    }
-
     //method to represent the possible paths of the graph and to calculate the duration of each path taken
     public ArrayList<pathAndtotalDuration> getPathLists() {
         ArrayList<pathAndtotalDuration> curPathAndDuration = new ArrayList<pathAndtotalDuration>();
@@ -195,15 +182,27 @@ public class ActivityNetwork {
     //method used once user pressed 'Process' on the GUI to determine if all nodes are connected (true) otherwise a break was detected (false)
     public boolean isAllNodesConnected() {
         ArrayList<ActivityNode> stack = new ArrayList<ActivityNode>();
-
         boolean visited[] = new boolean[this.nodeList.size()];
 
-        connectivityUtil(this.nodeList.get(0), visited, stack, this.nodeList);
+        connectivityUtil(this.nodeList.get(0), visited, stack, this.nodeList); //dfs should yield all nodes if connected
         for(ActivityNode node: this.nodeList) {
-            if(stack.indexOf(node) == -1)
+            if(stack.indexOf(node) == -1) //found node that dfs didn't, so disconnected
                 return false;
         }
         return true;
+    }
+
+    //recursive function to check the connectivity of a node
+    private void connectivityUtil(ActivityNode node, boolean visited[], ArrayList<ActivityNode> stack, ArrayList<ActivityNode> list) {
+        visited[list.indexOf(node)] = true; //set current node to visited
+        ActivityNode n;
+        Iterator<ActivityNode> i = findDoubleyAdjacentNodes(node, this.nodeList).iterator(); //look at predecessors and successors for undirected dfs
+        while (i.hasNext()) {
+            n = i.next();
+            if(!visited[list.indexOf(n)]) //for each successor recurse that hasn't been visitied recurse
+                connectivityUtil(n, visited, stack, list);
+        }
+        stack.add(0, node);
     }
 
     //cycles in the graph are not permitted
@@ -212,9 +211,9 @@ public class ActivityNetwork {
         int size = activityQueue.size();
         char[] state = new char[size];
         for(int i = 0; i < size; i++)
-            state[i] = 's';
+            state[i] = 's'; //fill state array with (s)tarting state
         for(int i = 0; i < size; i++) {
-            if(state[i] == 's') {
+            if(state[i] == 's') { //cycleUtil on all starting state nodes
                 if(cycleUtil(activityQueue.get(i), state, activityQueue) == true)
                     return true;
             }
@@ -224,17 +223,17 @@ public class ActivityNetwork {
 
     //recursive method to check if the graph contains a cycle
     boolean cycleUtil(ActivityNode node, char[] state, ArrayList<ActivityNode> activityQueue) {
-        state[activityQueue.indexOf(node)] = 'p';
+        state[activityQueue.indexOf(node)] = 'p'; //node is be (p)rocessed
         ActivityNode n;
         Iterator<ActivityNode> i = findAdjacentNodes(node, this.nodeList).iterator();
-        while (i.hasNext()) {
+        while (i.hasNext()) { //recurse to each adjancent node
             n = i.next();
-            if(state[activityQueue.indexOf(n)] == 'p')
+            if(state[activityQueue.indexOf(n)] == 'p') //we've returned to a node being processed, must be a cycle!
                 return true;
-            if (state[activityQueue.indexOf(n)] == 's' && cycleUtil(n, state, activityQueue))
+            if(state[activityQueue.indexOf(n)] == 's' && cycleUtil(n, state, activityQueue)) //if in (s)tarting state call cycleUtil on this node
                 return true;
         }
-        state[activityQueue.indexOf(node)] = 'f';
+        state[activityQueue.indexOf(node)] = 'f'; //node and all it's children have (f)inished being processed
         return false;
     }
 }

@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Arrays;
+import java.util.Collections;
 
 public class ActivityNetwork {
 
@@ -131,6 +132,7 @@ public class ActivityNetwork {
         ArrayList<pathAndtotalDuration> curPathAndDuration = new ArrayList<pathAndtotalDuration>();
         for(ActivityNode startNode : this.startNodesList)
             curPathAndDuration.addAll(this.getPathListHelper(startNode)); //traverse through each starting node and call the recursive function getPathListHelper
+        Collections.sort(curPathAndDuration);
         return curPathAndDuration; //return list that contain the paths with durations for the graph
     }
 

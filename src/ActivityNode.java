@@ -1,6 +1,6 @@
 import java.util.*;
 
-public class ActivityNode {
+public class ActivityNode implements Comparable<ActivityNode>{
 
     // Instance Variables
     String name;
@@ -30,5 +30,18 @@ public class ActivityNode {
     public void addPredecessor(ActivityNode predecessor) {
         this.predecessors.add(predecessor);
     }
+    
+    public String toString() {
+    	return this.name + " : " + this.duration + " : " + String.join(",", this.dependencies);
+    }
+    
+    public String toString2() {
+    	return this.name + " : " + this.duration;
+    }
+    
+	@Override
+	public int compareTo(ActivityNode B) {
+		return this.name.compareTo(B.name);
+	}
 
 }

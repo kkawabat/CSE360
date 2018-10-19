@@ -1,4 +1,6 @@
 import java.util.*;
+import java.nio.charset.*;
+import java.time.LocalDateTime;    
 
 import java.awt.EventQueue;
 import java.awt.ScrollPane;
@@ -12,6 +14,8 @@ import java.awt.event.ActionEvent;
 import javax.swing.JFileChooser;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+
 import javax.swing.JTextField;
 import javax.swing.JLabel;
 import javax.swing.JButton;
@@ -21,11 +25,12 @@ import javax.swing.JOptionPane;
 import javax.swing.JList;
 import javax.swing.JScrollPane;
 import java.io.BufferedReader;
+import java.io.PrintWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.BufferedReader;
 import java.awt.Font;
+import javax.swing.ListSelectionModel;
 
 public class GUI {
 
@@ -35,9 +40,13 @@ public class GUI {
 	private JTextField textFieldActivityName;
 	private JTextField textFieldDuration;
 	private JTextField textFieldPredecessor;
-	private DefaultListModel<String> listModel = new DefaultListModel<String>();
-	private JList<String> list = new JList<String>(listModel);
-	private JScrollPane scrollPaneOutput;
+	private DefaultListModel<String> pathListModel = new DefaultListModel<String>();
+	private JList<String> path_list = new JList<String>(pathListModel);
+	private JScrollPane scrollPanePaths;
+	
+	private DefaultListModel<String> nodeListModel = new DefaultListModel<String>();
+	private JList<String> node_list = new JList<String>(nodeListModel);
+	private JScrollPane scrollPaneNodes;
 
 	//activityNetowrk elements
 	private ArrayList<ActivityNode> activityQueue = new ArrayList<ActivityNode>();
@@ -72,7 +81,7 @@ public class GUI {
 	private void initialize() {
 		frame = new JFrame();
 		frame.setResizable(false);
-		frame.setBounds(100, 100, 442, 432);
+		frame.setBounds(100, 100, 602, 432);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		JMenuBar menuBar = new JMenuBar();
@@ -88,6 +97,19 @@ public class GUI {
 				System.exit(1);
 			}
 		});
+		
+		JMenuItem mntmCreateReport = new JMenuItem("Create Report");
+		mntmCreateReport.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				try {
+					createReport();
+				} catch (FileNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+		mnFiles.add(mntmCreateReport);
 
 		mnFiles.add(mntmQuit);
 
@@ -114,22 +136,22 @@ public class GUI {
 		frame.getContentPane().setLayout(null);
 
 		textFieldActivityName = new JTextField();
-		textFieldActivityName.setBounds(100, 35, 320, 20);
+		textFieldActivityName.setBounds(100, 35, 486, 20);
 		frame.getContentPane().add(textFieldActivityName);
 		textFieldActivityName.setColumns(10);
 
 		textFieldDuration = new JTextField();
-		textFieldDuration.setBounds(100, 65, 320, 20);
+		textFieldDuration.setBounds(100, 65, 486, 20);
 		frame.getContentPane().add(textFieldDuration);
 		textFieldDuration.setColumns(10);
 
 		textFieldPredecessor = new JTextField();
-		textFieldPredecessor.setBounds(100, 95, 320, 20);
+		textFieldPredecessor.setBounds(100, 95, 486, 20);
 		frame.getContentPane().add(textFieldPredecessor);
 		textFieldPredecessor.setColumns(10);
 
 		JLabel lblInput = new JLabel("Inputs (seperate multiple arguments with \",\")");
-		lblInput.setBounds(10, 10, 396, 15);
+		lblInput.setBounds(10, 10, 550, 15);
 		frame.getContentPane().add(lblInput);
 
 		//button, once pressed begin adding activity to activity list
@@ -139,7 +161,7 @@ public class GUI {
 				queActivity();
 			}
 		});
-		btnAddActivity.setBounds(10, 130, 130, 30);
+		btnAddActivity.setBounds(10, 129, 130, 30);
 		frame.getContentPane().add(btnAddActivity);
 
 		//button, once pressed begin processing current activity list
@@ -149,24 +171,25 @@ public class GUI {
 				processNetwork();
 			}
 		});
-		btnProcess.setBounds(150, 130, 130, 30);
+		btnProcess.setBounds(150, 129, 130, 30);
 		frame.getContentPane().add(btnProcess);
 
-		JLabel lblOutput = new JLabel("Output");
-		lblOutput.setBounds(10, 170, 45, 15);
+		JLabel lblOutput = new JLabel("Paths");
+		lblOutput.setBounds(290, 168, 45, 15);
 		frame.getContentPane().add(lblOutput);
 
 		//button, once pressed clear current activity list
 		JButton btnRestart = new JButton("Restart");
 		btnRestart.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				listModel.removeAllElements();
+				nodeListModel.removeAllElements();
+				pathListModel.removeAllElements();
 				network.startNodesList.clear();
 				network.nodeList.clear();
 				activityQueue.clear();
 			}
 		});
-		btnRestart.setBounds(290, 130, 130, 30);
+		btnRestart.setBounds(456, 129, 130, 30);
 		frame.getContentPane().add(btnRestart);
 
 		JLabel lblNewLabel = new JLabel("Activity Name");
@@ -181,11 +204,30 @@ public class GUI {
 		lblNewLabel_2.setBounds(10, 100, 80, 15);
 		frame.getContentPane().add(lblNewLabel_2);
 
-		scrollPaneOutput = new JScrollPane();
-		scrollPaneOutput.setBounds(10, 185, 410, 180);
-		list.setFont(new Font("Consolas", Font.PLAIN, 12));
-		scrollPaneOutput.setViewportView(list);
-		frame.getContentPane().add(scrollPaneOutput);
+		scrollPanePaths = new JScrollPane();
+		scrollPanePaths.setBounds(290, 185, 296, 180);
+		path_list.setFont(new Font("Consolas", Font.PLAIN, 12));
+		scrollPanePaths.setViewportView(path_list);
+		frame.getContentPane().add(scrollPanePaths);
+		
+		scrollPaneNodes = new JScrollPane();
+		scrollPaneNodes.setBounds(10, 185, 270, 180);
+		node_list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		scrollPaneNodes.setViewportView(node_list);
+		frame.getContentPane().add(scrollPaneNodes);
+		
+		JLabel lblNodes = new JLabel("Node name : Duration : Dependencies");
+		lblNodes.setBounds(10, 169, 225, 14);
+		frame.getContentPane().add(lblNodes);
+		
+		JButton btnCriticalProcess = new JButton("Process (Critical)");
+		btnCriticalProcess.setFont(new Font("Tahoma", Font.PLAIN, 11));
+		btnCriticalProcess.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+			}
+		});
+		btnCriticalProcess.setBounds(290, 129, 156, 30);
+		frame.getContentPane().add(btnCriticalProcess);
 	}
 
 	private static boolean hasDuplicatePredecessors(String[] list) {
@@ -236,6 +278,13 @@ public class GUI {
 		ActivityNode node = new ActivityNode(strActivityName, duration, predecessorNameList);
 		network.addPotentialNode(node); //adds to the network's list of all nodes
 		activityQueue.add(node);
+		
+		//print new node into node text panel
+		nodeListModel.addElement(node.toString());
+		node_list.setModel(nodeListModel);
+		scrollPaneNodes.revalidate();
+		scrollPaneNodes.repaint();
+		return;
 	}
 
 	//strings together node by setting successors and predecessors
@@ -278,24 +327,23 @@ public class GUI {
 		network.processQueue(activityQueue); //sort the queue into topological order
 		addActivities(); //string together the nodes
 		ArrayList<pathAndtotalDuration> pathAndDurationList = network.getPathLists();
-		Collections.sort(pathAndDurationList);
 
 		//clear output in GUI
-		listModel.removeAllElements();
+		pathListModel.removeAllElements();
 		//re-populate output with list of paths
 		for(pathAndtotalDuration tmpPath: pathAndDurationList) {
-			listModel.addElement(tmpPath.toString());
-			list.setModel(listModel);
+			pathListModel.addElement(tmpPath.toString());
+			path_list.setModel(pathListModel);
 			System.out.println(tmpPath.toString());
 		}
-		scrollPaneOutput.revalidate();
-		scrollPaneOutput.repaint();
+		scrollPanePaths.revalidate();
+		scrollPanePaths.repaint();
 		return;
 	}
 
 	void displayTextFromFile(String file_name) {
 		//clear output in GUI
-		listModel.removeAllElements();
+		pathListModel.removeAllElements();
 		//re-populate output with text from file_name
 		try {
 			File file = new File(file_name);
@@ -304,15 +352,49 @@ public class GUI {
 			StringBuffer stringBuffer = new StringBuffer();
 			String line;
 			while ((line = bufferedReader.readLine()) != null) {
-				listModel.addElement(line);
+				pathListModel.addElement(line);
 			}
 			fileReader.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		list.setModel(listModel);
-		scrollPaneOutput.revalidate();
-		scrollPaneOutput.repaint();
+		path_list.setModel(pathListModel);
+		scrollPanePaths.revalidate();
+		scrollPanePaths.repaint();
+		return;
+	}
+	
+	void createReport() throws FileNotFoundException {
+		JFileChooser reportSaver = new JFileChooser();
+		if (reportSaver.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
+		  File file_report = reportSaver.getSelectedFile();
+		  PrintWriter printer_report = new PrintWriter(file_report);
+		  
+		  
+		  printer_report.println("Title:" + file_report.getName());
+		  LocalDateTime now = LocalDateTime.now();  
+		  printer_report.println("Time and Data:" + now.toString());
+		  
+		  //print node list to report
+		  printer_report.println("Node list (Name : Duration)");
+		  ArrayList<ActivityNode> nodelist = network.nodeList;
+		  Collections.sort(nodelist);
+		  for(ActivityNode node : nodelist) {
+			  printer_report.println(node.toString());
+		  }
+		  printer_report.println();
+		  
+		  //print path lists to report
+		  printer_report.println("Path list:");
+		  ArrayList<pathAndtotalDuration> pathAndDurationList = network.getPathLists();
+		  for(pathAndtotalDuration tmpPath: pathAndDurationList) {
+			  printer_report.println(tmpPath.toString());
+		  }
+		  printer_report.close();
+		  JOptionPane.showMessageDialog(null, file_report.getName() + " has been successfully generated", "Report Saved",  JOptionPane.INFORMATION_MESSAGE);
+		  return;
+		}
+		JOptionPane.showMessageDialog(null, "File name not acceptable", "Could Not Generate Report", JOptionPane.ERROR_MESSAGE);
 		return;
 	}
 }

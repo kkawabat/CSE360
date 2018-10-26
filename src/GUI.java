@@ -328,13 +328,13 @@ public class GUI {
 			{JOptionPane.showMessageDialog(null, "No Activity Nodes detected", "Could Not Process Network", JOptionPane.ERROR_MESSAGE);return;}
 
 		if(!network.allNodesDefinied(activityQueue))
-			{JOptionPane.showMessageDialog(null, "Not all antecedent nodes defined", "Could Not Process Network", JOptionPane.ERROR_MESSAGE);network.removeNodes(activityQueue);activityQueue.clear();return;}
+			{JOptionPane.showMessageDialog(null, "Not all antecedent nodes defined", "Could Not Process Network", JOptionPane.ERROR_MESSAGE);network.removeNodes(activityQueue);activityQueue.clear();removeJunk();return;}
 
 		if(!network.isAllNodesConnected())
-			{JOptionPane.showMessageDialog(null, "Not all Nodes are connected", "Could Not Process Network", JOptionPane.ERROR_MESSAGE);network.removeNodes(activityQueue);activityQueue.clear();return;}
+			{JOptionPane.showMessageDialog(null, "Not all Nodes are connected", "Could Not Process Network", JOptionPane.ERROR_MESSAGE);network.removeNodes(activityQueue);activityQueue.clear();removeJunk();return;}
 
 		if(network.isThereCycle(activityQueue))
-			{JOptionPane.showMessageDialog(null, "Cycle detected in network", "Could Not Process Network", JOptionPane.ERROR_MESSAGE);network.removeNodes(activityQueue);activityQueue.clear();return;}
+			{JOptionPane.showMessageDialog(null, "Cycle detected in network", "Could Not Process Network", JOptionPane.ERROR_MESSAGE);network.removeNodes(activityQueue);activityQueue.clear();removeJunk();return;}
 
 		network.processQueue(activityQueue); //sort the queue into topological order
 		addActivities(); //string together the nodes
@@ -351,6 +351,12 @@ public class GUI {
 		scrollPanePaths.revalidate();
 		scrollPanePaths.repaint();
 		return;
+	}
+
+	void removeJunk() {
+		nodeListModel.removeAllElements();
+		for(ActivityNode node: network.nodeList)
+			nodeListModel.addElement(node);
 	}
 
 	void displayTextFromFile(String file_name) {

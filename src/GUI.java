@@ -12,6 +12,9 @@ import javax.swing.JMenuItem;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import javax.swing.JFileChooser;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.FocusTraversalPolicy;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -218,6 +221,14 @@ public class GUI {
 		scrollPaneNodes.setViewportView(node_list);
 		frame.getContentPane().add(scrollPaneNodes);
 
+		Vector<Component> order = new Vector<Component>(3);
+		order.add(textFieldActivityName);
+		order.add(textFieldDuration);
+		order.add(textFieldPredecessor);
+		order.add(btnAddActivity);
+		CustomTraversalPolicy newPolicy = new CustomTraversalPolicy(order);
+		frame.setFocusTraversalPolicy(newPolicy);
+
 		JLabel lblNodes = new JLabel("Node name : Duration : Dependencies");
 		lblNodes.setBounds(514, 10, 225, 14);
 		frame.getContentPane().add(lblNodes);
@@ -241,8 +252,8 @@ public class GUI {
 
 		node_list.setSelectionModel(new DefaultListSelectionModel() {
 			public void setSelectionInterval(int index0, int index1) {
-        if (index0 == index1) {
-          if (isSelectedIndex(index0)) {
+        if(index0 == index1) {
+          if(isSelectedIndex(index0)) {
             removeSelectionInterval(index0, index0);
             return;
           }
@@ -252,8 +263,8 @@ public class GUI {
 
 			@Override
       public void addSelectionInterval(int index0, int index1) {
-        if (index0 == index1) {
-          if (isSelectedIndex(index0)) {
+        if(index0 == index1) {
+          if(isSelectedIndex(index0)) {
             removeSelectionInterval(index0, index0);
             return;
           }

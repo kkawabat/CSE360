@@ -80,8 +80,7 @@ public class GUI {
 	*/
 	private void initialize() {
 		frame = new JFrame();
-		frame.setResizable(false);
-		frame.setBounds(100, 100, 602, 432);
+		frame.setBounds(100, 100, 725, 432);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		JMenuBar menuBar = new JMenuBar();
@@ -136,17 +135,17 @@ public class GUI {
 		frame.getContentPane().setLayout(null);
 
 		textFieldActivityName = new JTextField();
-		textFieldActivityName.setBounds(100, 35, 486, 20);
+		textFieldActivityName.setBounds(100, 35, 404, 20);
 		frame.getContentPane().add(textFieldActivityName);
 		textFieldActivityName.setColumns(10);
 
 		textFieldDuration = new JTextField();
-		textFieldDuration.setBounds(100, 65, 486, 20);
+		textFieldDuration.setBounds(100, 65, 404, 20);
 		frame.getContentPane().add(textFieldDuration);
 		textFieldDuration.setColumns(10);
 
 		textFieldPredecessor = new JTextField();
-		textFieldPredecessor.setBounds(100, 95, 486, 20);
+		textFieldPredecessor.setBounds(100, 95, 404, 20);
 		frame.getContentPane().add(textFieldPredecessor);
 		textFieldPredecessor.setColumns(10);
 
@@ -161,7 +160,7 @@ public class GUI {
 				queActivity();
 			}
 		});
-		btnAddActivity.setBounds(10, 129, 130, 30);
+		btnAddActivity.setBounds(10, 129, 102, 30);
 		frame.getContentPane().add(btnAddActivity);
 
 		//button, once pressed begin processing current activity list
@@ -171,11 +170,11 @@ public class GUI {
 				processNetwork();
 			}
 		});
-		btnProcess.setBounds(150, 129, 130, 30);
+		btnProcess.setBounds(123, 129, 86, 30);
 		frame.getContentPane().add(btnProcess);
 
-		JLabel lblOutput = new JLabel("Paths");
-		lblOutput.setBounds(290, 168, 45, 15);
+		JLabel lblOutput = new JLabel("Activity Paths (descending order by duration)");
+		lblOutput.setBounds(10, 170, 494, 15);
 		frame.getContentPane().add(lblOutput);
 
 		//button, once pressed clear current activity list
@@ -189,7 +188,7 @@ public class GUI {
 				activityQueue.clear();
 			}
 		});
-		btnRestart.setBounds(456, 129, 130, 30);
+		btnRestart.setBounds(374, 129, 130, 30);
 		frame.getContentPane().add(btnRestart);
 
 		JLabel lblNewLabel = new JLabel("Activity Name");
@@ -205,19 +204,19 @@ public class GUI {
 		frame.getContentPane().add(lblNewLabel_2);
 
 		scrollPanePaths = new JScrollPane();
-		scrollPanePaths.setBounds(290, 185, 296, 180);
+		scrollPanePaths.setBounds(10, 187, 494, 178);
 		path_list.setFont(new Font("Consolas", Font.PLAIN, 12));
 		scrollPanePaths.setViewportView(path_list);
 		frame.getContentPane().add(scrollPanePaths);
 		
 		scrollPaneNodes = new JScrollPane();
-		scrollPaneNodes.setBounds(10, 185, 270, 180);
+		scrollPaneNodes.setBounds(514, 35, 187, 330);
 		node_list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		scrollPaneNodes.setViewportView(node_list);
 		frame.getContentPane().add(scrollPaneNodes);
 		
 		JLabel lblNodes = new JLabel("Node name : Duration : Dependencies");
-		lblNodes.setBounds(10, 169, 225, 14);
+		lblNodes.setBounds(514, 10, 225, 14);
 		frame.getContentPane().add(lblNodes);
 		
 		JButton btnCriticalProcess = new JButton("Process (Critical)");
@@ -226,7 +225,7 @@ public class GUI {
 			public void actionPerformed(ActionEvent arg0) {
 			}
 		});
-		btnCriticalProcess.setBounds(290, 129, 156, 30);
+		btnCriticalProcess.setBounds(219, 129, 145, 30);
 		frame.getContentPane().add(btnCriticalProcess);
 	}
 

@@ -33,6 +33,7 @@ import java.awt.Font;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.DefaultListSelectionModel;
 
 public class GUI {
 
@@ -225,12 +226,41 @@ public class GUI {
       public void valueChanged(ListSelectionEvent le) {
 				if(!le.getValueIsAdjusting()) {
 	        int idx = node_list.getSelectedIndex();
-					String nodeDuration;
-	        if(idx != -1)
-						nodeDuration = JOptionPane.showInputDialog("Change the duration of " + node_list.getSelectedValue().name + ":");
+					int nodeDuration;
+	        if(idx != -1) {
+						try{nodeDuration = Integer.parseInt(JOptionPane.showInputDialog("Change the duration of " + node_list.getSelectedValue().name + ":"));}
+							catch (NumberFormatException ex){JOptionPane.showMessageDialog(null, "Duration is not an integer", "Duration not changed", JOptionPane.ERROR_MESSAGE);return;}
+						ActivityNode node = node_list.getSelectedValue();
+						node.duration = nodeDuration;
+						scrollPaneNodes.revalidate();
+						scrollPaneNodes.repaint();
+					}
 	      }
 			}
     });
+
+		node_list.setSelectionModel(new DefaultListSelectionModel() {
+			public void setSelectionInterval(int index0, int index1) {
+        if (index0 == index1) {
+          if (isSelectedIndex(index0)) {
+            removeSelectionInterval(index0, index0);
+            return;
+          }
+        }
+        super.setSelectionInterval(index0, index1);
+      }
+
+			@Override
+      public void addSelectionInterval(int index0, int index1) {
+        if (index0 == index1) {
+          if (isSelectedIndex(index0)) {
+            removeSelectionInterval(index0, index0);
+            return;
+          }
+          super.addSelectionInterval(index0, index1);
+        }
+      }
+		});
 
 		JButton btnCriticalProcess = new JButton("Process (Critical)");
 		btnCriticalProcess.setFont(new Font("Tahoma", Font.PLAIN, 11));

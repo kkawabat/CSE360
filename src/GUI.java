@@ -239,8 +239,13 @@ public class GUI {
 	        int idx = node_list.getSelectedIndex();
 					int nodeDuration;
 	        if(idx != -1) {
-						try{nodeDuration = Integer.parseInt(JOptionPane.showInputDialog("Change the duration of " + node_list.getSelectedValue().name + ":"));}
-							catch (NumberFormatException ex){JOptionPane.showMessageDialog(null, "Duration is not an integer", "Duration not changed", JOptionPane.ERROR_MESSAGE);return;}
+						try{
+							String input = JOptionPane.showInputDialog("Change the duration of " + node_list.getSelectedValue().name + ":");
+							if(input == null)
+								return;
+							nodeDuration = Integer.parseInt(input);
+						}
+						catch(NumberFormatException ex){JOptionPane.showMessageDialog(null, "Duration is not an integer", "Duration not changed", JOptionPane.ERROR_MESSAGE);return;}
 						ActivityNode node = node_list.getSelectedValue();
 						node.duration = nodeDuration;
 						scrollPaneNodes.revalidate();

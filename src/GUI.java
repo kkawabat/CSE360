@@ -1,6 +1,6 @@
 import java.util.*;
 import java.nio.charset.*;
-import java.time.LocalDateTime;    
+import java.time.LocalDateTime;
 
 import java.awt.EventQueue;
 import java.awt.ScrollPane;
@@ -31,6 +31,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.awt.Font;
 import javax.swing.ListSelectionModel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 public class GUI {
 
@@ -43,9 +45,9 @@ public class GUI {
 	private DefaultListModel<String> pathListModel = new DefaultListModel<String>();
 	private JList<String> path_list = new JList<String>(pathListModel);
 	private JScrollPane scrollPanePaths;
-	
-	private DefaultListModel<String> nodeListModel = new DefaultListModel<String>();
-	private JList<String> node_list = new JList<String>(nodeListModel);
+
+	private DefaultListModel<ActivityNode> nodeListModel = new DefaultListModel<ActivityNode>();
+	private JList<ActivityNode> node_list = new JList<ActivityNode>(nodeListModel);
 	private JScrollPane scrollPaneNodes;
 
 	//activityNetowrk elements
@@ -80,7 +82,7 @@ public class GUI {
 	*/
 	private void initialize() {
 		frame = new JFrame();
-		frame.setBounds(100, 100, 725, 432);
+		frame.setBounds(100, 100, 750, 450);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		JMenuBar menuBar = new JMenuBar();
@@ -96,7 +98,7 @@ public class GUI {
 				System.exit(1);
 			}
 		});
-		
+
 		JMenuItem mntmCreateReport = new JMenuItem("Create Report");
 		mntmCreateReport.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
@@ -208,17 +210,28 @@ public class GUI {
 		path_list.setFont(new Font("Consolas", Font.PLAIN, 12));
 		scrollPanePaths.setViewportView(path_list);
 		frame.getContentPane().add(scrollPanePaths);
-		
+
 		scrollPaneNodes = new JScrollPane();
-		scrollPaneNodes.setBounds(514, 35, 187, 330);
+		scrollPaneNodes.setBounds(514, 35, 208, 330);
 		node_list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		scrollPaneNodes.setViewportView(node_list);
 		frame.getContentPane().add(scrollPaneNodes);
-		
+
 		JLabel lblNodes = new JLabel("Node name : Duration : Dependencies");
 		lblNodes.setBounds(514, 10, 225, 14);
 		frame.getContentPane().add(lblNodes);
-		
+
+		node_list.addListSelectionListener(new ListSelectionListener() {
+      public void valueChanged(ListSelectionEvent le) {
+				if(!le.getValueIsAdjusting()) {
+	        int idx = node_list.getSelectedIndex();
+					String nodeDuration;
+	        if(idx != -1)
+						nodeDuration = JOptionPane.showInputDialog("Change the duration of " + node_list.getSelectedValue().name + ":");
+	      }
+			}
+    });
+
 		JButton btnCriticalProcess = new JButton("Process (Critical)");
 		btnCriticalProcess.setFont(new Font("Tahoma", Font.PLAIN, 11));
 		btnCriticalProcess.addActionListener(new ActionListener() {
@@ -277,9 +290,9 @@ public class GUI {
 		ActivityNode node = new ActivityNode(strActivityName, duration, predecessorNameList);
 		network.addPotentialNode(node); //adds to the network's list of all nodes
 		activityQueue.add(node);
-		
+
 		//print new node into node text panel
-		nodeListModel.addElement(node.toString());
+		nodeListModel.addElement(node);
 		node_list.setModel(nodeListModel);
 		scrollPaneNodes.revalidate();
 		scrollPaneNodes.repaint();
@@ -362,18 +375,18 @@ public class GUI {
 		scrollPanePaths.repaint();
 		return;
 	}
-	
+
 	void createReport() throws FileNotFoundException {
 		JFileChooser reportSaver = new JFileChooser();
 		if (reportSaver.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
 		  File file_report = reportSaver.getSelectedFile();
 		  PrintWriter printer_report = new PrintWriter(file_report);
-		  
-		  
+
+
 		  printer_report.println("Title:" + file_report.getName());
-		  LocalDateTime now = LocalDateTime.now();  
+		  LocalDateTime now = LocalDateTime.now();
 		  printer_report.println("Time and Data:" + now.toString());
-		  
+
 		  //print node list to report
 		  printer_report.println("Node list (Name : Duration)");
 		  ArrayList<ActivityNode> nodelist = network.nodeList;
@@ -382,7 +395,7 @@ public class GUI {
 			  printer_report.println(node.toString());
 		  }
 		  printer_report.println();
-		  
+
 		  //print path lists to report
 		  printer_report.println("Path list:");
 		  ArrayList<pathAndtotalDuration> pathAndDurationList = network.getPathLists();

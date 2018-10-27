@@ -54,8 +54,7 @@ public class GUI {
 	private JList<ActivityNode> node_list = new JList<ActivityNode>(nodeListModel);
 	private JScrollPane scrollPaneNodes;
 
-	//activityNetowrk elements
-	private ArrayList<ActivityNode> activityQueue = new ArrayList<ActivityNode>();
+	//activityNetwork
 	private ActivityNetwork network = new ActivityNetwork();
 
 	/**
@@ -191,7 +190,7 @@ public class GUI {
 				pathListModel.removeAllElements();
 				network.startNodesList.clear();
 				network.nodeList.clear();
-				activityQueue.clear();
+				network.activityQueue.clear();
 			}
 		});
 		btnRestart.setBounds(374, 129, 130, 30);
@@ -336,7 +335,6 @@ public class GUI {
 
 		ActivityNode node = new ActivityNode(strActivityName, duration, predecessorNameList);
 		network.addPotentialNode(node); //adds to the network's list of all nodes
-		activityQueue.add(node);
 
 		//print new node into node text panel
 		nodeListModel.addElement(node);
@@ -362,11 +360,10 @@ public class GUI {
 
 	//string on each node in the queue of nodes to be added
 	void addActivities() {
-		for(ActivityNode node: activityQueue) {
-			System.out.println("adding " + node.name);
+		for(ActivityNode node: network.activityQueue) {
 			addActivity(node);
 		}
-		activityQueue.clear(); //everything from queue has been added so flush it
+		network.activityQueue.clear(); //everything from queue has been added so flush it
 	}
 
 	//checks that the network is a valid activity diagram, then process the nodes
@@ -374,16 +371,16 @@ public class GUI {
 		if(network.isEmpty())
 		{JOptionPane.showMessageDialog(null, "No Activity Nodes detected", "Could Not Process Network", JOptionPane.ERROR_MESSAGE);return;}
 
-		if(!network.allNodesDefinied(activityQueue))
-		{JOptionPane.showMessageDialog(null, "Not all antecedent nodes defined", "Could Not Process Network", JOptionPane.ERROR_MESSAGE);network.removeNodes(activityQueue);activityQueue.clear();removeJunk();return;}
+		if(!network.allNodesDefinied(network.activityQueue))
+		{JOptionPane.showMessageDialog(null, "Not all antecedent nodes defined", "Could Not Process Network", JOptionPane.ERROR_MESSAGE);removeJunk();return;}
 
 		if(!network.isAllNodesConnected())
-		{JOptionPane.showMessageDialog(null, "Not all Nodes are connected", "Could Not Process Network", JOptionPane.ERROR_MESSAGE);network.removeNodes(activityQueue);activityQueue.clear();removeJunk();return;}
+		{JOptionPane.showMessageDialog(null, "Not all Nodes are connected", "Could Not Process Network", JOptionPane.ERROR_MESSAGE);removeJunk();return;}
 
-		if(network.isThereCycle(activityQueue))
-		{JOptionPane.showMessageDialog(null, "Cycle detected in network", "Could Not Process Network", JOptionPane.ERROR_MESSAGE);network.removeNodes(activityQueue);activityQueue.clear();removeJunk();return;}
+		if(network.isThereCycle(network.activityQueue))
+		{JOptionPane.showMessageDialog(null, "Cycle detected in network", "Could Not Process Network", JOptionPane.ERROR_MESSAGE);removeJunk();return;}
 
-		network.processQueue(activityQueue); //sort the queue into topological order
+		network.processQueue(network.activityQueue); //sort the queue into topological order
 		addActivities(); //string together the nodes
 	}
 
@@ -397,7 +394,6 @@ public class GUI {
 		for(pathAndtotalDuration tmpPath: pathAndDurationList) {
 			pathListModel.addElement(tmpPath.toString());
 			path_list.setModel(pathListModel);
-			System.out.println(tmpPath.toString());
 		}
 		scrollPanePaths.revalidate();
 		scrollPanePaths.repaint();
@@ -414,7 +410,6 @@ public class GUI {
 			if (traverse.duration == critcalPathDuration) {
 				pathListModel.addElement(traverse.toString());
 				path_list.setModel(pathListModel);
-				System.out.println(traverse.toString());
 			}
 		}
 		scrollPanePaths.revalidate();
@@ -422,6 +417,8 @@ public class GUI {
 	}
 
 	void removeJunk() {
+		network.removeNodes(network.activityQueue);
+		network.activityQueue.clear();
 		nodeListModel.removeAllElements();
 		for(ActivityNode node: network.nodeList)
 			nodeListModel.addElement(node);
@@ -466,7 +463,7 @@ public class GUI {
 		  ArrayList<ActivityNode> nodelist = network.nodeList;
 		  Collections.sort(nodelist);
 		  for(ActivityNode node : nodelist) {
-			  printer_report.println(node.toString());
+			  printer_report.println(node.toString2());
 		  }
 		  printer_report.println();
 

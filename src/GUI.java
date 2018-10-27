@@ -282,6 +282,7 @@ public class GUI {
 		btnCriticalProcess.setFont(new Font("Tahoma", Font.PLAIN, 11));
 		btnCriticalProcess.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
+				processCritical();
 			}
 		});
 		btnCriticalProcess.setBounds(219, 129, 145, 30);
@@ -397,6 +398,39 @@ public class GUI {
 		scrollPanePaths.revalidate();
 		scrollPanePaths.repaint();
 		return;
+	}
+
+	void processCritical() {
+		if(network.isEmpty())
+		{JOptionPane.showMessageDialog(null, "No Activity Nodes detected", "Could Not Process Network", JOptionPane.ERROR_MESSAGE);return;}
+
+		if(!network.allNodesDefinied(activityQueue))
+		{JOptionPane.showMessageDialog(null, "Not all antecedent nodes defined", "Could Not Process Network", JOptionPane.ERROR_MESSAGE);network.removeNodes(activityQueue);activityQueue.clear();removeJunk();return;}
+
+		if(!network.isAllNodesConnected())
+		{JOptionPane.showMessageDialog(null, "Not all Nodes are connected", "Could Not Process Network", JOptionPane.ERROR_MESSAGE);network.removeNodes(activityQueue);activityQueue.clear();removeJunk();return;}
+
+		if(network.isThereCycle(activityQueue))
+		{JOptionPane.showMessageDialog(null, "Cycle detected in network", "Could Not Process Network", JOptionPane.ERROR_MESSAGE);network.removeNodes(activityQueue);activityQueue.clear();removeJunk();return;}
+
+		network.processQueue(activityQueue); //sort the queue into topological order
+		addActivities(); //string together the nodes
+		ArrayList<pathAndtotalDuration> pathAndDurationList = network.getPathLists();
+
+		pathListModel.removeAllElements();
+
+		int critcalPathDuration = pathAndDurationList.get(0).duration;
+		for (pathAndtotalDuration traverse : pathAndDurationList) {
+			if (traverse.duration == critcalPathDuration) {
+				pathListModel.addElement(traverse.toString());
+				path_list.setModel(pathListModel);
+				System.out.println(traverse.toString());
+			}
+		}
+
+		scrollPanePaths.revalidate();
+		scrollPanePaths.repaint();
+
 	}
 
 	void removeJunk() {

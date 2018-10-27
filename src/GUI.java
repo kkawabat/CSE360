@@ -369,38 +369,8 @@ public class GUI {
 		activityQueue.clear(); //everything from queue has been added so flush it
 	}
 
-	//checks that the network is a valid activity diagram, then process the nodes and print the list of paths
-	void processNetwork() {
-		if(network.isEmpty())
-			{JOptionPane.showMessageDialog(null, "No Activity Nodes detected", "Could Not Process Network", JOptionPane.ERROR_MESSAGE);return;}
-
-		if(!network.allNodesDefinied(activityQueue))
-			{JOptionPane.showMessageDialog(null, "Not all antecedent nodes defined", "Could Not Process Network", JOptionPane.ERROR_MESSAGE);network.removeNodes(activityQueue);activityQueue.clear();removeJunk();return;}
-
-		if(!network.isAllNodesConnected())
-			{JOptionPane.showMessageDialog(null, "Not all Nodes are connected", "Could Not Process Network", JOptionPane.ERROR_MESSAGE);network.removeNodes(activityQueue);activityQueue.clear();removeJunk();return;}
-
-		if(network.isThereCycle(activityQueue))
-			{JOptionPane.showMessageDialog(null, "Cycle detected in network", "Could Not Process Network", JOptionPane.ERROR_MESSAGE);network.removeNodes(activityQueue);activityQueue.clear();removeJunk();return;}
-
-		network.processQueue(activityQueue); //sort the queue into topological order
-		addActivities(); //string together the nodes
-		ArrayList<pathAndtotalDuration> pathAndDurationList = network.getPathLists();
-
-		//clear output in GUI
-		pathListModel.removeAllElements();
-		//re-populate output with list of paths
-		for(pathAndtotalDuration tmpPath: pathAndDurationList) {
-			pathListModel.addElement(tmpPath.toString());
-			path_list.setModel(pathListModel);
-			System.out.println(tmpPath.toString());
-		}
-		scrollPanePaths.revalidate();
-		scrollPanePaths.repaint();
-		return;
-	}
-
-	void processCritical() {
+	//checks that the network is a valid activity diagram, then process the nodes
+	void process() {
 		if(network.isEmpty())
 		{JOptionPane.showMessageDialog(null, "No Activity Nodes detected", "Could Not Process Network", JOptionPane.ERROR_MESSAGE);return;}
 
@@ -415,10 +385,30 @@ public class GUI {
 
 		network.processQueue(activityQueue); //sort the queue into topological order
 		addActivities(); //string together the nodes
+	}
+
+	//processes then prints the list of all paths
+	void processNetwork() {
+		process();
 		ArrayList<pathAndtotalDuration> pathAndDurationList = network.getPathLists();
-
+		//clear output in GUI
 		pathListModel.removeAllElements();
+		//re-populate output with list of paths
+		for(pathAndtotalDuration tmpPath: pathAndDurationList) {
+			pathListModel.addElement(tmpPath.toString());
+			path_list.setModel(pathListModel);
+			System.out.println(tmpPath.toString());
+		}
+		scrollPanePaths.revalidate();
+		scrollPanePaths.repaint();
+		return;
+	}
 
+	//processes then prints the list of all critical paths
+	void processCritical() {
+		process();
+		ArrayList<pathAndtotalDuration> pathAndDurationList = network.getPathLists();
+		pathListModel.removeAllElements();
 		int critcalPathDuration = pathAndDurationList.get(0).duration;
 		for (pathAndtotalDuration traverse : pathAndDurationList) {
 			if (traverse.duration == critcalPathDuration) {
@@ -427,10 +417,8 @@ public class GUI {
 				System.out.println(traverse.toString());
 			}
 		}
-
 		scrollPanePaths.revalidate();
 		scrollPanePaths.repaint();
-
 	}
 
 	void removeJunk() {

@@ -450,6 +450,7 @@ public class GUI {
 
 		  //print path lists to report
 		  printer_report.println("Path list:");
+
 		  ArrayList<pathAndtotalDuration> pathAndDurationList = network.getPathLists();
 		  for(pathAndtotalDuration tmpPath: pathAndDurationList) {
 			  printer_report.println(tmpPath.toString());

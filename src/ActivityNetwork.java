@@ -8,33 +8,20 @@ public class ActivityNetwork {
     // Instance Variables
     ArrayList<ActivityNode> nodeList;
     ArrayList<ActivityNode> startNodesList;
+    ArrayList<ActivityNode> activityQueue;
     boolean isProcessed = false;
 
     //constructor to initialize nodeList and startNodeList
     public ActivityNetwork() {
         this.nodeList = new ArrayList<ActivityNode>();
         this.startNodesList = new ArrayList<ActivityNode>();
-    }
-
-
-    public ActivityNetwork(ArrayList<ActivityNode> nodeList) {
-        this.nodeList = nodeList;
-        this.startNodesList = getStartNodes();
-    }
-
-    //create a new ArrayList of Activity Nodes that contain the starting nodes
-    public ArrayList<ActivityNode> getStartNodes(){
-        ArrayList<ActivityNode> startNodes = new ArrayList<ActivityNode>();
-        for(ActivityNode node : this.nodeList) {
-            if(node.predecessors.isEmpty())
-                startNodes.add(node);
-        }
-        return startNodes;
+        this.activityQueue = new ArrayList<ActivityNode>();
     }
 
     //used to add a Node passed from the user into the current nodeList
     public void addPotentialNode(ActivityNode node) {
         this.nodeList.add(node);
+        this.activityQueue.add(node);
         this.isProcessed = false;
         return;
     }
@@ -115,7 +102,7 @@ public class ActivityNetwork {
     }
 
     //method used to parse the 'predecessor' input from the user using ',' as the split
-    String[] parsePredecessorFromString(String strPredecessor){
+    String[] parsePredecessorFromString(String strPredecessor) {
         String[] predecessorList = strPredecessor.split(",", -1);
         return predecessorList;
     }
